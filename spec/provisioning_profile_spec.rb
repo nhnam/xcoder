@@ -13,7 +13,7 @@ describe Xcode::ProvisioningProfile do
   end
   
   
-  context "app store provisionig profile" do
+  context "app store provisioning profile" do
     it "should read the uuid from the profile" do
       appstore.uuid.should=="81289CB8-4CC2-4A11-B3D6-82D8FA2BEC81"
     end
