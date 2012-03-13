@@ -78,7 +78,9 @@ module Xcode
       cmd << "xcodebuild"
       cmd << "-project \"#{@target.project.path}\""
       cmd << "-sdk #{@sdk}" unless @sdk.nil?
-      
+      if sdk == "iphonesimulator" then
+        cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+      end
       cmd << "-scheme #{@scheme.name}" unless @scheme.nil?
       cmd << "-target \"#{@target.name}\"" if @scheme.nil?
       cmd << "-configuration \"#{@config.name}\"" if @scheme.nil?
@@ -190,6 +192,9 @@ module Xcode
       cmd = []
       cmd << "xcodebuild"
       cmd << "-sdk #{sdk}" unless sdk.nil?
+      if sdk == "iphonesimulator" then
+        cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+      end
       cmd << "-project \"#{@target.project.path}\""
       
       cmd << "-scheme #{@scheme.name}" unless @scheme.nil?
