@@ -36,6 +36,10 @@ module Xcode
     #   functionality.
     attr_reader :registry
     
+    # @return [ProjectReference] the project object that is contained in the 
+    #   project file that contains additional information
+    attr_reader :project
+    
     #
     # Initialized with a specific path and sdk.
     # 
@@ -78,10 +82,19 @@ module Xcode
       @registry.archive_version
     end
     
+    #
+    # @return [Array<Configuration>] a list of configurations global to the project
+    # 
     def global_configs
       @project.configs
     end
     
+    #
+    # @param [String,Symbol] name of the configuration for the project
+    # 
+    # @return [Configuration] the project level configuration with the given name;
+    #   raise an exception if no configuration exists with that name.
+    #
     def global_config(name)
       @project.config(name)
     end
@@ -195,16 +208,15 @@ module Xcode
     # @param [String] path the path to save the project
     #
     def save(path)
-      Dir.mkdir(path) unless File.exists?(path)
       
+      Dir.mkdir(path) unless File.exists?(path)
       project_filepath = "#{path}/project.pbxproj"
       
       # @toodo Save the workspace when the project is saved
       # FileUtils.cp_r "#{path}/project.xcworkspace", "#{path}/project.xcworkspace"
+  
+      Xcode::PLUTILProjectParser.save "#{@path}/project.pbxproj", to_xcplist
       
-      File.open(project_filepath,'w') do |file|
-        file.puts to_xcplist
-      end
     end
     
     #
@@ -257,20 +269,18 @@ module Xcode
     # generate all the additional build phases, configurations, and files
     # that create a project.
     # 
-    # @todo generate a create target with sensible defaults, similar to how
-    #   it is done through Xcode itself.
+    # Available targts:
     # 
-    # @todo based on the specified type of target, default build phases and
-    #   configuration should be created for the target similar to what is 
-    #   supported in xcode.  Currently even now the :ios target does not
-    #   generate the deafult build_phases for you and requires you to make those.
+    # * native
+    # * aggregate
     # 
     # @param [String] name the name to provide to the target. This will also
     #   be the value that other defaults will be based on.
+    # @param [String,Symbol] type the type of build target to create.
     #
     # @return [Target] the target created.
     # 
-    def create_target(name,type=:ios)
+    def create_target(name,type=:native)
       
       target = @registry.add_object Target.send(type)
       @project.properties['targets'] << target.identifier

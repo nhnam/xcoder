@@ -4,8 +4,13 @@ require 'xcode/test/ocunit_report_parser.rb'
 require 'xcode/testflight'
 
 module Xcode
+
+  #
+  # This class tries to pull various bits of Xcoder together to provide a higher-level API for common 
+  # project build tasks.
+  #
   class Builder
-    attr_accessor :profile, :identity, :build_path, :keychain, :sdk
+    attr_accessor :profile, :identity, :build_path, :keychain, :sdk, :objroot, :symroot
     
     def initialize(config)
       if config.is_a? Xcode::Scheme
@@ -18,33 +23,23 @@ module Xcode
       @sdk = @target.project.sdk
       @config = config
       @build_path = "#{File.dirname(@target.project.path)}/build/"
+      @objroot = @build_path
+      @symroot = @build_path
     end
     
-    def install_profile
-      return nil if @profile.nil?
-      # TODO: remove other profiles for the same app?
-      p = ProvisioningProfile.new(@profile)
-      
-      ProvisioningProfile.installed_profiles.each do |installed|
-        if installed.identifiers==p.identifiers and installed.uuid==p.uuid
-          installed.uninstall
-        end
+    
+    def build(options = {:sdk => @sdk})    
+      cmd = build_command(options)
+      with_keychain do
+        Xcode::Shell.execute(cmd)
       end
-      
-      p.install
-      p
-    end
-    
-    def build(sdk=@sdk)    
-      cmd = build_command(@sdk)
-      Xcode::Shell.execute(cmd)
       self
     end
-    
-    def test
-      cmd = build_command('iphonesimulator')
+      
+    def test(options = {:sdk => 'iphonesimulator'})
+      cmd = build_command(options)
       cmd << "TEST_AFTER_BUILD=YES"
-      cmd << "TEST_HOST=''"
+      # cmd << "TEST_HOST=''"
       
       parser = Xcode::Test::OCUnitReportParser.new
       yield(parser) if block_given?
@@ -70,7 +65,6 @@ module Xcode
       testflight = Xcode::Testflight.new(api_token, team_token)
       yield(testflight) if block_given?
       testflight.upload(ipa_path, dsym_zip_path)
-      self
     end
     
     def clean
@@ -78,13 +72,13 @@ module Xcode
       cmd << "xcodebuild"
       cmd << "-project \"#{@target.project.path}\""
       cmd << "-sdk #{@sdk}" unless @sdk.nil?
-      if sdk == "iphonesimulator" then
-        cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
-      end
-      cmd << "-scheme #{@scheme.name}" unless @scheme.nil?
+      cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
       cmd << "-target \"#{@target.name}\"" if @scheme.nil?
       cmd << "-configuration \"#{@config.name}\"" if @scheme.nil?
       
+      if @sdk == "iphonesimulator" then
+          cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+      end
       cmd << "OBJROOT=\"#{@build_path}\""
       cmd << "SYMROOT=\"#{@build_path}\""
       cmd << "clean"
@@ -140,7 +134,9 @@ module Xcode
         cmd << "--embed \"#{@profile}\""
       end
       
-      Xcode::Shell.execute(cmd)
+      with_keychain do
+        Xcode::Shell.execute(cmd)
+      end
       
       # package dSYM
       cmd = []
@@ -187,24 +183,47 @@ module Xcode
     
     private 
     
-    def build_command(sdk=@sdk)
+    def with_keychain(&block)
+      if @keychain.nil?
+        yield
+      else
+        Xcode::Keychains.with_keychain_in_search_path @keychain, &block
+      end
+    end
+    
+    def install_profile
+      return nil if @profile.nil?
+      # TODO: remove other profiles for the same app?
+      p = ProvisioningProfile.new(@profile)
+      
+      ProvisioningProfile.installed_profiles.each do |installed|
+        if installed.identifiers==p.identifiers and installed.uuid==p.uuid
+          installed.uninstall
+        end
+      end
+      
+      p.install
+      p
+    end
+    
+    def build_command(options = {})
+      options = {:sdk => @sdk}.merge options
       profile = install_profile
       cmd = []
       cmd << "xcodebuild"
-      cmd << "-sdk #{sdk}" unless sdk.nil?
-      if sdk == "iphonesimulator" then
-        cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
-      end
+      cmd << "-sdk #{options[:sdk]}" unless options[:sdk].nil?
       cmd << "-project \"#{@target.project.path}\""
-      
-      cmd << "-scheme #{@scheme.name}" unless @scheme.nil?
+      cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
       cmd << "-target \"#{@target.name}\"" if @scheme.nil?
       cmd << "-configuration \"#{@config.name}\"" if @scheme.nil?
       
+      if options[:sdk] == "iphonesimulator" then
+          cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+      end
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
       cmd << "CODE_SIGN_IDENTITY=\"#{@identity}\"" unless @identity.nil?
-      cmd << "OBJROOT=\"#{@build_path}\""
-      cmd << "SYMROOT=\"#{@build_path}\""
+      cmd << "OBJROOT=\"#{@objroot}\""
+      cmd << "SYMROOT=\"#{@symroot}\""
       cmd << "PROVISIONING_PROFILE=#{profile.uuid}" unless profile.nil?
       cmd
     end

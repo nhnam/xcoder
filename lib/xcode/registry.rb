@@ -11,6 +11,8 @@ require 'xcode/configuration_owner'
 require 'xcode/target'
 require 'xcode/variant_group'
 require 'xcode/project_reference'
+require 'xcode/target_dependency'
+require 'xcode/container_item_proxy'
 
 module Xcode
   
@@ -46,7 +48,7 @@ module Xcode
     #   identifier; false if it is not.
     # 
     def self.is_identifier? value
-      value =~ /^[0-9A-F]{24}$/
+      value =~ /^[0-9A-F]{24,}$/
     end
 
     #
@@ -70,12 +72,16 @@ module Xcode
         'XCBuildConfiguration' => Configuration,
         'PBXFileReference' => FileReference,
         'PBXGroup' => Group,
-        'PBXNativeTarget' => [Target, ConfigurationOwner],
-        'PBXLegacyTarget' => [Target, ConfigurationOwner],
-        'PBXAggregateTarget' => Target,
+        'PBXNativeTarget' => [Target, ConfigurationOwner ],
+        'PBXLegacyTarget' => [Target, ConfigurationOwner ],
+        'PBXAggregateTarget' => [ Target, ConfigurationOwner ],
         'PBXFrameworksBuildPhase' => BuildPhase,
         'PBXSourcesBuildPhase' => BuildPhase,
         'PBXResourcesBuildPhase' => BuildPhase,
+        'PBXHeadersBuildPhase' => BuildPhase,
+        'PBXShellScriptBuildPhase' => BuildPhase,
+        'PBXTargetDependency' => TargetDependency,
+        'PBXContainerItemProxy' => ContainerItemProxy,
         'PBXBuildFile' => BuildFile,
         'PBXVariantGroup' => VariantGroup,
         'XCConfigurationList' => ConfigurationList,

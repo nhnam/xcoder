@@ -24,7 +24,14 @@ describe Xcode::Builder do
         Xcode::Shell.should_receive(:execute).with(default_build_parameters)
         subject.build
       end
-
+      
+      it "should allow the override of the sdk" do
+        expected = default_build_parameters
+        expected[1] = '-sdk macosx10.7'
+        Xcode::Shell.should_receive(:execute).with(expected)
+        subject.build :sdk => 'macosx10.7'
+      end
+      
     end
     
     describe "#testflight" do
@@ -71,12 +78,20 @@ describe Xcode::Builder do
           "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
           "TEST_AFTER_BUILD=YES",
-          "TEST_HOST=''",]
+          # "TEST_HOST=''",
+          ]
       end
       
       it "should be able to run the test target" do
         Xcode::Shell.should_receive(:execute).with(default_test_parameters, false)
         subject.test
+      end
+      
+      it "should allow the override of the sdk" do
+        expected = default_test_parameters
+        expected[1] = '-sdk macosx10.7'
+        Xcode::Shell.should_receive(:execute).with(expected, false)
+        subject.test :sdk => 'macosx10.7'
       end
       
     end
@@ -116,7 +131,7 @@ describe Xcode::Builder do
         [ "xcodebuild",
           "-sdk iphoneos",
           "-project \"#{scheme.project.path}\"",
-          "-scheme #{scheme.name}",
+          "-scheme \"#{scheme.name}\"",
           "OBJROOT=\"#{File.dirname(scheme.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"" ]
       end
@@ -134,7 +149,7 @@ describe Xcode::Builder do
         [ "xcodebuild",
           "-project \"#{scheme.project.path}\"",
           "-sdk iphoneos",
-          "-scheme #{scheme.name}",
+          "-scheme \"#{scheme.name}\"",
           "OBJROOT=\"#{File.dirname(scheme.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"",
           "clean" ]

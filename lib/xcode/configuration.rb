@@ -5,6 +5,7 @@ require 'xcode/configurations/string_property'
 require 'xcode/configurations/boolean_property'
 require 'xcode/configurations/array_property'
 require 'xcode/configurations/key_value_array_property'
+require 'xcode/configurations/enumeration_property'
 
 module Xcode
   
@@ -250,6 +251,65 @@ module Xcode
     # Build Setting - "OTHER_LDFLAGS"
     # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW76
     property :other_linker_flags, "OTHER_LDFLAGS", SpaceDelimitedString
+
+    # @attribute
+    # Build Setting - "DEAD_CODE_STRIPPING"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_216
+    property :dead_code_stripping, "DEAD_CODE_STRIPPING", BooleanProperty
+
+    # @attribute
+    # Build Setting - "DEBUG_INFORMATION_FORMAT"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_54
+    property :debug_information_format, "DEBUG_INFORMATION_FORMAT", 
+      EnumerationProperty.new('stabs','dwarf','dwarf-with-dsym')
+
+
+    # @attribute
+    # Build Setting - "GCC_ENABLE_OBJC_EXCEPTIONS"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW109
+    property :enable_objc_exceptions, "GCC_ENABLE_OBJC_EXCEPTIONS", BooleanProperty
+    
+    # @attribute
+    # Build Setting - "GCC_GENERATE_DEBUGGING_SYMBOLS"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html
+    property :generate_debugging_symbols, "GCC_GENERATE_DEBUGGING_SYMBOLS", BooleanProperty
+
+    # @attribute
+    # Build Setting - "GCC_WARN_64_TO_32_BIT_CONVERSION"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html
+    property :warn_64_to_32_bit_conversion, "GCC_WARN_64_TO_32_BIT_CONVERSION", BooleanProperty
+
+    # @attribute
+    # Build Setting - "GCC_WARN_ABOUT_MISSING_PROTOTYPES"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html
+    property :warn_about_missing_protoypes, "GCC_WARN_ABOUT_MISSING_PROTOTYPES", BooleanProperty
+
+    # @attribute
+    # Build Setting - "LINK_WITH_STANDARD_LIBRARIES"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_227
+    property :link_with_standard_libraries, "LINK_WITH_STANDARD_LIBRARIES", BooleanProperty
+
+    # @attribute
+    # Build Setting - "INSTALL_PATH"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_82
+    property :install_path, "INSTALL_PATH", StringProperty
+
+    # @attribute
+    # Build Setting - "MACH_O_TYPE"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_39
+    property :mach_o_type, "MACH_O_TYPE", 
+      EnumerationProperty.new('mh_executable', 'mh_bundle', 'mh_object', 'mh_dylib', 'staticlib')
+
+    # @attribute
+    # Build Setting - "MACOSX_DEPLOYMENT_TARGET"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_188
+    property :macosx_deployment_target, "MACOSX_DEPLOYMENT_TARGET", 
+      EnumerationProperty.new('10.7','10.6','10.5','10.4','10.3','10.2','10.1')
+
+    # @attribute
+    # Build Setting - "VALID_ARCHS"
+    # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_43
+    property :valid_architectures, "VALID_ARCHS", SpaceDelimitedString
     
     #
     # Opens the info plist associated with the configuration and allows you to 
@@ -285,7 +345,9 @@ module Xcode
     # @return [String,Array,Hash] the value stored for the specified configuration
     #  
     def get(name)
-      if Configuration.setting_name_to_property(name)
+      if respond_to?(name)
+        send(name)
+      elsif Configuration.setting_name_to_property(name)
         send Configuration.setting_name_to_property(name)
       else
         build_settings[name]
@@ -299,7 +361,9 @@ module Xcode
     # @param [String,Array,Hash] value the value to store for the specific setting
     #
     def set(name, value)
-      if Configuration.setting_name_to_property(name)
+      if respond_to?(name)
+        send("#{name}=",value)
+      elsif Configuration.setting_name_to_property(name)
         send("#{Configuration.setting_name_to_property(name)}=",value)
       else
         build_settings[name] = value
@@ -313,12 +377,37 @@ module Xcode
     # @param [String,Array,Hash] value the value to store for the specific setting
     #
     def append(name, value)
-      if Configuration.setting_name_to_property(name)
+      
+      if respond_to?(name)
+        send("append_to_#{name}",value)
+      elsif Configuration.setting_name_to_property(name)
         send("append_to_#{Configuration.setting_name_to_property(name)}",value)
       else
-        # @todo this will likely raise some errors if trying to append a string
-        #   to an array, but that likely means a new property should be defined.
-        build_settings[name] = build_settings[name] + value
+
+        # @note this will likely raise some errors if trying to append a booleans
+        #   to fixnums, strings to booleans, symbols + arrays, etc. but that likely 
+        #   means a new property should be defined so that the appending logic
+        #   wil behave correctly.
+  
+        if build_settings[name].is_a?(Array)
+          
+          # Ensure that we are appending an array to the array; Array() does not
+          # work in this case in the event we were to pass in a Hash.
+          value = value.is_a?(Array) ? value : [ value ]
+          build_settings[name] = build_settings[name] + value.compact
+          
+        else
+          
+          # Ensure we handle the cases where a nil value is present that we append
+          # correctly to the value. We also need to try and leave intact boolean
+          # values which may be stored
+          
+          value = "" unless value
+          build_settings[name] = "" unless build_settings[name]
+          
+          build_settings[name] = build_settings[name] + value
+        end
+       
       end
     end
     
