@@ -15,10 +15,10 @@ module Xcode
   # 
   class Project 
     
-	# @return [String] the expanded file path for the project. This is expanded from the
+    # @return [String] the expanded file path for the project. This is expanded from the
     #   file path specified during initialization.
     attr_reader :path
-	
+    
     # @return [String] the name of the project; This value is deteremined from the 
     #   first part of the Xcode project folder name (e.g. "TestProject.xcodeproj" 
     #   name is "TestProject")
@@ -53,8 +53,8 @@ module Xcode
     #   `iphoneos`.
     #
     def initialize(path, sdk=nil)
-	  @path = File.expand_path path
-	  @name = File.basename(@path).gsub(/\.xcodeproj/,'')
+      @path = File.expand_path path
+      @name = File.basename(@path).gsub(/\.xcodeproj/,'')
       @sdk = sdk || "iphoneos"  # FIXME: should support OSX/simulator too
       @schemes = []
       @groups = []
@@ -138,7 +138,7 @@ module Xcode
     def group(name,options = {},&block)
       @project.group(name,options,&block)
     end
-	
+    
     #
     # Return the file that matches the specified path. This will traverse
     # the project's groups and find the file at the end of the path.
@@ -334,24 +334,24 @@ module Xcode
       end
       schemes.each do |s|
         puts " + scheme \"#{s.name}\""
-		printTarget = lambda do |configuration|
-		  puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
-		end
-		unless s.launch.nil?
-		  puts "    + Launch action"
-		  printTarget.call s.launch
-		end
-		unless s.test.nil? then
-		  puts "    + Test action"
-		  s.test.each do |current|
-			printTarget.call current
-		  end
-		end
+        printTarget = lambda do |configuration|
+          puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
+        end
+        unless s.launch.nil?
+          puts "    + Launch action"
+          printTarget.call s.launch
+        end
+        unless s.test.nil? then
+          puts "    + Test action"
+          s.test.each do |current|
+            printTarget.call current
+          end
+        end
       end
     end
     
     private
-	
+    
     #
     # Parse all the scheme files that can be found within the project. Schemes
     # can be defined as `shared` schemes and then `user` specific schemes. Parsing
@@ -369,7 +369,7 @@ module Xcode
         Xcode::Scheme.new(self, scheme)
       end
     end
-	
+    
     #
     # Using the sytem tool plutil, the specified project file is parsed and 
     # converted to JSON, which is then converted to a hash object. This content 
