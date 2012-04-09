@@ -20,8 +20,24 @@ module Xcode
       @test = parse_action(doc, 'test')
     end
     
-    def builder
-      Xcode::Builder.new(self)
+    def performBuild
+      
+    end
+    
+    def performRun
+      
+    end
+    
+    def performTest
+      
+    end
+    
+    def performAnalyse
+      
+    end
+    
+    def performArchive
+      
     end
     
     private

@@ -24,6 +24,7 @@ module Xcode
       @target = config.target
       @sdk = @target.project.sdk
       @config = config
+      
       @build_path = "#{File.dirname(@target.project.path)}/build/"
       @objroot = @build_path
       @symroot = @build_path
