@@ -334,8 +334,8 @@ module Xcode
       end
       schemes.each do |s|
         puts " + scheme \"#{s.name}\""
-		printTarget = lambda do |target|
-		  puts "       => target:\"#{target.target.name}\", config:\"#{target.name}\""
+		printTarget = lambda do |configuration|
+		  puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
 		end
 		unless s.launch.nil?
 		  puts "    + Launch action"
