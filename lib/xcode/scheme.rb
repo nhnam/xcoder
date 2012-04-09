@@ -29,20 +29,19 @@ module Xcode
     def parse_action(doc, action_name)
       
       action = doc.xpath("/Scheme/#{action_name.capitalize}Action").first
-      actionBuildConfiguration = action.xpath('@buildConfiguration')
+      actionBuildConfiguration = action.xpath('@buildConfiguration').text
       
       if action_name == 'launch' then
-        target_name = action.xpath('BuildableProductRunnable/BuildableReference/@BlueprintName')
+        target_name = action.xpath('BuildableProductRunnable/BuildableReference/@BlueprintName').text
         target = @project.target(target_name)
         configuration = target.config(actionBuildConfiguration)
         return configuration
       end
       
       if action_name == 'test' then
-        testablesEnabled = action.xpath('Testables/TestableReference[@skipped = \'NO\']')
-        
         testTargets = []
         
+        testablesEnabled = action.xpath('Testables/TestableReference[@skipped = \'NO\']')
         testablesEnabled.each do |testableEnabled|
           containerIdentifier = testableEnabled.xpath('BuildableReference/@ReferencedContainer').text
           
@@ -74,7 +73,7 @@ module Xcode
           testTargets << target.config(actionBuildConfiguration)
         end
         
-        return testTargets.length > 0 ? testTargets : nil
+        return testTargets.size > 0 ? testTargets : nil
       end
       
     end
