@@ -41,18 +41,31 @@ module Xcode
       if action_name == 'test' then
         testablesEnabled = action.xpath('Testables/TestableReference[@skipped = \'NO\']')
         
-        unit_test_bundles = []
+        testTargets = []
         
         testablesEnabled.each do |testableEnabled|
-          container = testableEnabled.xpath('BuildableReference/@ReferencedContainer')
+          container = testableEnabled.xpath('BuildableReference/@ReferencedContainer').text
           
-          identifier = testableEnabled.xpath('BuildableReference/@BlueprintIdentifier')
-          name = testableEnabled.xpath('BuildableReference/@BlueprintName')
+          identifier = testableEnabled.xpath('BuildableReference/@BlueprintIdentifier').text
+          name = testableEnabled.xpath('BuildableReference/@BlueprintName').text
           
+          containerComponents = container.split(':')
+          next unless containerComponents[0] == "container"
           
+          if containerComponents[1] == File.basename(@project.path) then
+            # Identifier should be inside @project.registry
+            
+            target = @project.targets.select {|t| t.identifier == identifier}.first
+            
+            testTargets << target.config(actionBuildConfiguration)
+          else
+            # We need to initialise the new project and find it's target
+            
+            
+          end
         end
         
-        return unit_test_bundles.length > 0 ? unit_test_bundles : nil
+        return testTargets.length > 0 ? testTargets : nil
       end
       
     end

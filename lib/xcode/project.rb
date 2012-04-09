@@ -15,6 +15,10 @@ module Xcode
   # 
   class Project 
     
+	# @return [String] the expanded file path for the project. This is expanded from the
+    #   file path specified during initialization.
+    attr_reader :path
+	
     # @return [String] the name of the project; This value is deteremined from the 
     #   first part of the Xcode project folder name (e.g. "TestProject.xcodeproj" 
     #   name is "TestProject")
@@ -23,10 +27,6 @@ module Xcode
     # @return [String] the sdks for the project. This is specified during the project
     #   initialization. If none are provided this currently defaults to "iphoneos"
     attr_reader :sdk
-    
-    # @return [String] the expanded file path for the project. This is expanded from the
-    #   file path specified during initialization.
-    attr_reader :path
     
     # @return [Array<Scheme>] the schemes that are found within the project path.
     attr_reader :schemes
@@ -53,11 +53,11 @@ module Xcode
     #   `iphoneos`.
     #
     def initialize(path, sdk=nil)
+	  @path = File.expand_path path
+	  @name = File.basename(@path).gsub(/\.xcodeproj/,'')
       @sdk = sdk || "iphoneos"  # FIXME: should support OSX/simulator too
-      @path = File.expand_path path
       @schemes = []
       @groups = []
-      @name = File.basename(@path).gsub(/\.xcodeproj/,'')
       
       # Parse the Xcode project file and create the registry
       
@@ -138,7 +138,7 @@ module Xcode
     def group(name,options = {},&block)
       @project.group(name,options,&block)
     end
-
+	
     #
     # Return the file that matches the specified path. This will traverse
     # the project's groups and find the file at the end of the path.
@@ -325,30 +325,33 @@ module Xcode
     # Prints to STDOUT a description of this project's targets, configuration and schemes.  
     #
     def describe
-      puts "Project #{name} contains"
+      puts "Project \"#{name}\" contains"
       targets.each do |t|
-        puts " + target:#{t.name}"
+        puts " + target:\"#{t.name}\""
         t.configs.each do |c|
-          puts "    + config:#{c.name}"
+          puts "    + config:\"#{c.name}\""
         end
       end
       schemes.each do |s|
-        puts " + scheme #{s.name}"
+        puts " + scheme \"#{s.name}\""
+		printTarget = lambda do |target|
+		  puts "       => target:\"#{target.target.name}\", config:\"#{target.name}\""
+		end
 		unless s.launch.nil?
 		  puts "    + Launch action"
-		  puts "       => target:#{s.launch.target.name}, config:#{s.launch.name}"
+		  printTarget.call s.launch
 		end
 		unless s.test.nil? then
 		  puts "    + Test action"
 		  s.test.each do |current|
-			puts "       => target:#{current.name}, config:#{current.name}"
+			printTarget.call current
 		  end
 		end
       end
     end
     
     private
-  
+	
     #
     # Parse all the scheme files that can be found within the project. Schemes
     # can be defined as `shared` schemes and then `user` specific schemes. Parsing

@@ -1,3 +1,4 @@
+
 module Xcode
   
   module ProjectReference
@@ -31,7 +32,7 @@ module Xcode
       
       # @todo consider this traversing and find/create as a normal procedure when
       #   traversing the project.
-      
+	  
       name.split("/").each do |path_component|
         found_group = current_group.group(path_component).first
         
@@ -49,7 +50,6 @@ module Xcode
       current_group
     end
     
-    
-    
   end
+  
 end
