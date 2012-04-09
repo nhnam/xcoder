@@ -44,25 +44,34 @@ module Xcode
         testTargets = []
         
         testablesEnabled.each do |testableEnabled|
-          container = testableEnabled.xpath('BuildableReference/@ReferencedContainer').text
+          containerIdentifier = testableEnabled.xpath('BuildableReference/@ReferencedContainer').text
           
           identifier = testableEnabled.xpath('BuildableReference/@BlueprintIdentifier').text
           name = testableEnabled.xpath('BuildableReference/@BlueprintName').text
           
-          containerComponents = container.split(':')
+          containerComponents = containerIdentifier.split(':')
           next unless containerComponents[0] == "container"
+          containerName = containerComponents[1]
           
-          if containerComponents[1] == File.basename(@project.path) then
+          searchProject = nil
+          if containerName == File.basename(@project.path) then
             # Identifier should be inside @project.registry
             
-            target = @project.targets.select {|t| t.identifier == identifier}.first
-            
-            testTargets << target.config(actionBuildConfiguration)
+            searchProject = @project
           else
             # We need to initialise the new project and find it's target
             
+            enclosingDirectory = File.dirname(@project.path)
             
+            foreignProjectPath = File.join enclosingDirectory, containerName
+            foreignProject = Xcode::Project.new foreignProjectPath, @project.sdk
+            
+            searchProject = foreignProject
           end
+          next if searchProject.nil?
+          
+          target = searchProject.targets.select {|t| t.identifier == identifier}.first
+          testTargets << target.config(actionBuildConfiguration)
         end
         
         return testTargets.length > 0 ? testTargets : nil
