@@ -51,7 +51,7 @@ module Xcode
     # @param [String] path of the project to open.
     # @param [String] sdk the sdk value of the project. This will default to 
     #   `iphoneos`.
-    # 
+    #
     def initialize(path, sdk=nil)
       @sdk = sdk || "iphoneos"  # FIXME: should support OSX/simulator too
       @path = File.expand_path path
@@ -334,8 +334,16 @@ module Xcode
       end
       schemes.each do |s|
         puts " + scheme #{s.name}"
-        puts "    + Launch action => target:#{s.launch.target.name}, config:#{s.launch.name}" unless s.launch.nil?
-        puts "    + Test action   => target:#{s.test.target.name}, config:#{s.test.name}" unless s.test.nil?
+		unless s.launch.nil?
+		  puts "    + Launch action"
+		  puts "       => target:#{s.launch.target.name}, config:#{s.launch.name}"
+		end
+		unless s.test.nil? then
+		  puts "    + Test action"
+		  s.test.each do |current|
+			puts "       => target:#{current.name}, config:#{current.name}"
+		  end
+		end
       end
     end
     
@@ -358,7 +366,7 @@ module Xcode
         Xcode::Scheme.new(self, scheme)
       end
     end
-  
+	
     #
     # Using the sytem tool plutil, the specified project file is parsed and 
     # converted to JSON, which is then converted to a hash object. This content 

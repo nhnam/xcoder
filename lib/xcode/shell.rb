@@ -1,4 +1,6 @@
+
 module Xcode
+  
   module Shell
     
     def self.execute(bits, show_output=true)
@@ -18,5 +20,7 @@ module Xcode
       #puts "RETURN: #{out.inspect}"
       out
     end
+    
   end
+  
 end

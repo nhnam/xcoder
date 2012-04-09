@@ -1,3 +1,4 @@
+
 require 'xcode/shell'
 require 'xcode/provisioning_profile'
 require 'xcode/test/ocunit_report_parser.rb'
@@ -10,6 +11,7 @@ module Xcode
   # project build tasks.
   #
   class Builder
+    
     attr_accessor :profile, :identity, :build_path, :keychain, :sdk, :objroot, :symroot
     
     def initialize(config)
@@ -35,7 +37,7 @@ module Xcode
       end
       self
     end
-      
+    
     def test(options = {:sdk => 'iphonesimulator'})
       cmd = build_command(options)
       cmd << "TEST_AFTER_BUILD=YES"
@@ -82,6 +84,7 @@ module Xcode
       cmd << "OBJROOT=\"#{@build_path}\""
       cmd << "SYMROOT=\"#{@build_path}\""
       cmd << "clean"
+      
       Xcode::Shell.execute(cmd)
       
       @built = false
@@ -210,7 +213,9 @@ module Xcode
       options = {:sdk => @sdk}.merge options
       profile = install_profile
       cmd = []
+      
       cmd << "xcodebuild"
+      
       cmd << "-sdk #{options[:sdk]}" unless options[:sdk].nil?
       cmd << "-project \"#{@target.project.path}\""
       cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
