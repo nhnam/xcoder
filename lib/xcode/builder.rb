@@ -15,48 +15,45 @@ module Xcode
     attr_accessor :profile, :identity, :build_path, :keychain, :sdk, :objroot, :symroot
     
     def initialize(config)
-      if config.is_a? Xcode::Scheme
-        @scheme = config
-        config = config.launch
-      end
-      
-      #puts "CONFIG: #{config}"
+	  @config = config
+	  
       @target = config.target
       @sdk = @target.project.sdk
-      @config = config
       
-      @build_path = "#{File.dirname(@target.project.path)}/build/"
+      @build_path = File.join File.dirname(@target.project.path), "build"
       @objroot = @build_path
       @symroot = @build_path
     end
     
     
-    def build(options = {:sdk => @sdk})    
+    def build(options = {})    
       cmd = build_command(options)
       with_keychain do
         Xcode::Shell.execute(cmd)
       end
+      
       self
     end
     
-    def test(options = {:sdk => 'iphonesimulator'})
-      cmd = build_command(options)
-      cmd << "TEST_AFTER_BUILD=YES"
-      # cmd << "TEST_HOST=''"
+    def test(options = {})
+      build(options)
+      
+      # Find built product
+	  
+	  puts @config
+      
+      # Find otest for the current platform
+      
+      # Invoke otest for the current platform, capturing the results
+      # Ensure the results are written to sdterr as they're generated, so that Jenkins can read them
+      # Ensure it's invoked correctly for the Mac (i.e. first with GC off and again with GC on iff required)
+      
+      # Parse the results
       
       parser = Xcode::Test::OCUnitReportParser.new
-      yield(parser) if block_given?
+      yield parser if block_given?
       
-      begin
-        Xcode::Shell.execute(cmd, false) do |line|
-          parser << line
-        end
-      rescue => e
-        parser.flush
-        # Let the failure bubble up unless parser has got an error from the output
-        raise e unless parser.failed?
-      end
-      exit 1 if parser.failed?
+      
       
       self
     end
@@ -70,7 +67,7 @@ module Xcode
       testflight.upload(ipa_path, dsym_zip_path)
     end
     
-    def clean
+    def clean(options = {})
       cmd = []
       cmd << "xcodebuild"
       cmd << "-project \"#{@target.project.path}\""
@@ -84,6 +81,7 @@ module Xcode
       end
       cmd << "OBJROOT=\"#{@build_path}\""
       cmd << "SYMROOT=\"#{@build_path}\""
+      
       cmd << "clean"
       
       Xcode::Shell.execute(cmd)
@@ -102,7 +100,7 @@ module Xcode
       cmd << "codesign"
       cmd << "--force"
       cmd << "--sign \"#{@identity}\""
-      cmd << "--resource-rules=\"#{app_path}/ResourceRules.plist\""
+      cmd << "--resource-rules=\"#{product_path}/ResourceRules.plist\""
       cmd << "--entitlements \"#{entitlements_path}\""
       cmd << "\"#{ipa_path}\""
       Xcode::Shell.execute(cmd)
@@ -118,14 +116,14 @@ module Xcode
     end
     
     def package
-      raise "Can't find #{app_path}, do you need to call builder.build?" unless File.exists? app_path
+      raise "Can't find #{product_path}, do you need to call builder.build?" unless File.exists? product_path
       
       #package IPA
       cmd = []      
       cmd << "xcrun"
       cmd << "-sdk #{@sdk}" unless @sdk.nil?
       cmd << "PackageApplication"
-      cmd << "-v \"#{app_path}\""
+      cmd << "-v \"#{product_path}\""
       cmd << "-o \"#{ipa_path}\""
       
       # cmd << "OTHER_CODE_SIGN_FLAGS=\"--keychain #{@keychain.path}\"" unless @keychain.nil?
@@ -162,8 +160,8 @@ module Xcode
       "#{build_path}/#{@target.name}.build/#{name}-#{@target.project.sdk}/#{@target.name}.build/#{@config.product_name}.xcent"
     end
     
-    def app_path
-      "#{configuration_build_path}/#{@config.product_name}.app"
+    def product_path
+      "#{configuration_build_path}/#{@config.product_name}.#{@config.wrapper_extension}"
     end
     
     def product_version_basename
@@ -171,19 +169,18 @@ module Xcode
       version = "SNAPSHOT" if version.nil? or version==""
       "#{configuration_build_path}/#{@config.product_name}-#{@config.name}-#{version}"
     end
-
+	
     def ipa_path
       "#{product_version_basename}.ipa"
     end
     
     def dsym_path
-      "#{app_path}.dSYM"
+      "#{product_path}.dSYM"
     end
     
     def dsym_zip_path
       "#{product_version_basename}.dSYM.zip"
     end
-    
     
     private 
     
@@ -211,13 +208,14 @@ module Xcode
     end
     
     def build_command(options = {})
-      options = {:sdk => @sdk}.merge options
+      options = { :sdk => @sdk }.merge options
       profile = install_profile
+      
       cmd = []
       
       cmd << "xcodebuild"
       
-      cmd << "-sdk #{options[:sdk]}" unless options[:sdk].nil?
+      cmd << "-sdk \"#{options[:sdk]}\"" unless options[:sdk].nil?
       cmd << "-project \"#{@target.project.path}\""
       cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
       cmd << "-target \"#{@target.name}\"" if @scheme.nil?
@@ -226,11 +224,13 @@ module Xcode
       if options[:sdk] == "iphonesimulator" then
           cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
       end
+      
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
       cmd << "CODE_SIGN_IDENTITY=\"#{@identity}\"" unless @identity.nil?
       cmd << "OBJROOT=\"#{@objroot}\""
       cmd << "SYMROOT=\"#{@symroot}\""
       cmd << "PROVISIONING_PROFILE=#{profile.uuid}" unless profile.nil?
+      
       cmd
     end
     

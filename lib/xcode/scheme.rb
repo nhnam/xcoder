@@ -29,7 +29,10 @@ module Xcode
     end
     
     def performTest
-      
+      @test.each do |configuration|
+        builder = Xcode::Builder.new configuration
+        builder.test({ :sdk => "iphonesimulator" })
+      end
     end
     
     def performAnalyse
@@ -67,7 +70,7 @@ module Xcode
           containerComponents = containerIdentifier.split(':')
           next unless containerComponents[0] == "container"
           containerName = containerComponents[1]
-          
+		  
           searchProject = nil
           if containerName == File.basename(@project.path) then
             # Identifier should be inside @project.registry
