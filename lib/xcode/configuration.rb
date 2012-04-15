@@ -449,20 +449,21 @@ module Xcode
     #   properties 
     #
     def substitute(value)
-      if value =~ /\$[({].*[})]/
-        value.gsub /\$[({](.*)[})]/ do |match|
-		  puts "match found #{match}"
+	  regex = /\$[{(](.*)[)}]/
+	  
+      until (value =~ regex) == nil
+		value = value.gsub regex do |match|
+		  build_setting = $1
 		  
-          case match
-            when "$(TARGET_NAME)"
-              @target.name 
-            else
-              raise "Unknown substitution variable #{match}"
-          end
+		  if build_setting == "TARGET_NAME"
+			return @target.name
+		  end
+		  
+		  raise "don't know how to resolve \"#{build_setting}\""
         end
-      else
-        value
-      end
+	  end
+	  
+	  value
     end
     
     #
