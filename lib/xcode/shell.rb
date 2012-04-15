@@ -3,22 +3,23 @@ module Xcode
   
   module Shell
     
-    def self.execute(bits, show_output=true)
+    def self.execute(cmd, show_output=true)
       out = []
-      cmd = bits.is_a?(Array) ? bits.join(' ') : bits
-      
+	  
       puts "EXECUTE: #{cmd}"
-      IO.popen (cmd) do |f| 
+	  
+      IO.popen cmd do |f| 
         f.each do |line|
           puts line if show_output
-          yield(line) if block_given?
+          yield line if block_given?
           out << line
-        end 
+        end
       end
-      #Process.wait
-      raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if $?.exitstatus>0
-      #puts "RETURN: #{out.inspect}"
+	  
+      raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if $?.exitstatus > 0
+	  
       out
+	  
     end
     
   end

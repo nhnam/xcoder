@@ -35,16 +35,34 @@ module Xcode
       # json
       
       cmd = []
-      cmd << 'curl'
-      cmd << "--proxy #{@proxy}" unless @proxy.nil? or @proxy=='' 
-      cmd << "-X POST http://testflightapp.com/api/builds.json"
-      cmd << "-F file=@\"#{ipa_path}\""
-      cmd << "-F dsym=@\"#{dsymzip_path}\"" unless dsymzip_path.nil?
-      cmd << "-F api_token='#{@api_token}'"
-      cmd << "-F team_token='#{@team_token}'"
-      cmd << "-F notes=\"#{@notes}\"" unless @notes.nil?
-      cmd << "-F notify=#{@notify ? 'True' : 'False'}"
-      cmd << "-F distribution_lists='#{@lists.join(',')}'" unless @lists.count==0
+      cmd << "curl"
+	  unless @proxy.nil? or @proxy==''
+		cmd << "--proxy"
+		cmd << @proxy
+	  end
+      cmd << "-X"
+	  cmd << "POST"
+	  cmd << "http://testflightapp.com/api/builds.json"
+      cmd << "-F"
+	  cmd << "file=@\"#{ipa_path}\""
+	  unless dsymzip_path.nil?
+		cmd << "-F"
+		cmd << "dsym=@\"#{dsymzip_path}\""
+	  end
+      cmd << "-F"
+	  cmd << "api_token='#{@api_token}'"
+      cmd << "-F"
+	  cmd << "team_token='#{@team_token}'"
+	  unless @notes.nil?
+		cmd << "-F"
+		cmd << "notes=\"#{@notes}\""
+	  end
+      cmd << "-F"
+	  cmd << "notify=#{@notify ? 'True' : 'False'}"
+	  unless @lists.count==0
+		cmd << "-F"
+		cmd << "distribution_lists='#{@lists.join(',')}'"
+	  end
       
       response = Xcode::Shell.execute(cmd)
       

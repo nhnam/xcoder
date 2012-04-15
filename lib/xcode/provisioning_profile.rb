@@ -54,11 +54,19 @@ module Xcode
     end
     
     def install
-      Xcode::Shell.execute("cp #{self.path} #{self.install_path}")   
+	  cmd = []
+	  cmd << "cp"
+	  cmd << self.path
+	  cmd << self.install_path
+      Xcode::Shell.execute(cmd)   
     end
     
     def uninstall
-      Xcode::Shell.execute("rm -f #{self.install_path}")
+	  cmd = []
+	  cmd << "rm"
+	  cmd << "-f"
+	  cmd << self.install_path
+      Xcode::Shell.execute(cmd)
     end
 
     def self.installed_profiles

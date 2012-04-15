@@ -61,35 +61,37 @@ module Xcode
 	  cmdEnv["NATIVE_ARCH_ACTUAL"] = "i386"
 	  cmdEnv["CURRENT_ARCH"] = "i386"
 	  cmdEnv["ONLY_ACTIVE_ARCH"] = "NO"
-	  cmdEnv["BUILT_PRODUCTS_DIR"] = "\"#{@build_path}\""
+	  cmdEnv["BUILT_PRODUCTS_DIR"] = "#{@build_path}"
 	  cmdEnv["TEST_HOST"] = "#{@config.test_host}"
-	  cmdEnv["TEST_BUNDLE_PATH"] = "\"#{productPath}\""
-	  cmdEnv["DEVELOPER_DIR"] = developerDirectory
-	  cmdEnv["DEVELOPER_TOOLS_DIR"] = File.join developerDirectory, "Tools"
-	  cmdEnv["DEVELOPER_LIBRARY_DIR"] = File.join developerDirectory, "Library"
-	  
-	  puts cmdEnv
-	  exit 0
+	  cmdEnv["TEST_BUNDLE_PATH"] = "#{productPath}"
+	  cmdEnv["DEVELOPER_DIR"] = "#{developerDirectory}"
+	  developerToolsDirectory = File.join developerDirectory, "Tools"
+	  cmdEnv["DEVELOPER_TOOLS_DIR"] = "#{developerToolsDirectory}"
+	  developerLibraryDirectory = File.join developerDirectory, "Library"
+	  cmdEnv["DEVELOPER_LIBRARY_DIR"] = "#{developerLibraryDirectory}"
 	  
 	  if @sdk == "iphonesimulator" then
 		platformDirectory = File.join developerDirectory, "Platforms", "iPhoneSimulator.platform"
-		cmdEnv["PLATFORM_DIR"] = platformDirectory
+		cmdEnv["PLATFORM_DIR"] = "#{platformDirectory}"
 		platformDeveloperToolsDirectory = File.join platformDirectory, "Developer", "Tools"
-		cmdEnv["PLATFORM_DEVELOPER_TOOLS_DIR"] = platformDeveloperToolsDirectory
+		cmdEnv["PLATFORM_DEVELOPER_TOOLS_DIR"] = "#{platformDeveloperToolsDirectory}"
 		
-		cmdEnv["SDKROOT"] = "\"#{@config.sdkroot}\""
+		cmdEnv["SDKROOT"] = "#{@config.sdkroot}"
 	  else
 		puts "unknown platform"
 		exit 1
 	  end
 	  
-	  cmdEnv["PRODUCT_NAME"] = "\"#{File.basename(productPath)}\""
+	  cmdEnv["PRODUCT_NAME"] = "#{File.basename(productPath)}"
 	  cmdEnv["WRAPPER_EXTENSION"] = "#{File.extname(productPath)}"
 	  cmdEnv["GCC_ENABLE_OBJC_GC"] = "unsupported"
 	  
 	  cmd = []
 	  cmd << cmdEnv
-	  cmd << "bash -x -e \"#{runUnitTestsFilePath}\""
+	  cmd << "bash"
+	  cmd << "-x"
+	  cmd << "-e"
+	  cmd << "#{runUnitTestsFilePath}"
 	  
       # Run and parse the results
       
@@ -125,22 +127,31 @@ module Xcode
 	  
       cmd << "xcodebuild"
 	  
-	  cmd << "-sdk #{@sdk}" unless @sdk.nil?
+	  unless @sdk.nil?
+		cmd << "-sdk"
+		cmd << @sdk
+	  end
 	  
-      cmd << "-project \"#{@target.project.path}\""
+      cmd << "-project"
+	  cmd << @target.project.path
+	  
 	  unless @scheme.nil?
-		cmd << "-scheme \"#{@scheme.name}\""
+		cmd << "-scheme"
+		cmd << @scheme.name
 	  else
-		cmd << "-target \"#{@target.name}\""
-		cmd << "-configuration \"#{@config.name}\""
+		cmd << "-target"
+		cmd << @target.name
+		cmd << "-configuration"
+		cmd << @config.name
 	  end
       
       if @sdk == "iphonesimulator" then
-          cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+          cmd << "ARCHS=i386"
+		  cmd << "ONLY_ACTIVE_ARCH=NO"
       end
 	  
-      cmd << "OBJROOT=\"#{@objroot}\""
-      cmd << "SYMROOT=\"#{@symroot}\""
+      cmd << "OBJROOT=#{@objroot}"
+      cmd << "SYMROOT=#{@symroot}"
       
       cmd << "clean"
       
@@ -159,11 +170,12 @@ module Xcode
       cmd = []
       cmd << "codesign"
       cmd << "--force"
-      cmd << "--sign \"#{@identity}\""
-      cmd << "--resource-rules=\"#{product_path}/ResourceRules.plist\""
-      cmd << "--entitlements \"#{entitlements_path}\""
-      cmd << "\"#{ipa_path}\""
-	  
+      cmd << "--sign"
+	  cmd << @identity
+      cmd << "--resource-rules=#{product_path}/ResourceRules.plist"
+      cmd << "--entitlements"
+	  cmd << entitlements_path
+      cmd << ipa_path
       Xcode::Shell.execute(cmd)
  
 # CodeSign build/AdHoc-iphoneos/Dial.app
@@ -183,10 +195,15 @@ module Xcode
       #package IPA
       cmd = []      
       cmd << "xcrun"
-      cmd << "-sdk #{@sdk}" unless @sdk.nil?
+	  unless @sdk.nil?
+		cmd << "-sdk"
+		cmd << @sdk
+	  end
       cmd << "PackageApplication"
-      cmd << "-v \"#{product_path}\""
-      cmd << "-o \"#{ipa_path}\""
+      cmd << "-v"
+	  cmd << product_path
+      cmd << "-o"
+	  cmd << ipa_path
       
       # cmd << "OTHER_CODE_SIGN_FLAGS=\"--keychain #{@keychain.path}\"" unless @keychain.nil?
       # 
@@ -195,7 +212,8 @@ module Xcode
       # end
       
       unless @profile.nil?
-        cmd << "--embed \"#{@profile}\""
+        cmd << "--embed"
+		cmd << @profile
       end
       
       with_keychain do
@@ -207,8 +225,9 @@ module Xcode
       cmd << "zip"
       cmd << "-r"
       cmd << "-T"
-      cmd << "-y \"#{dsym_zip_path}\""
-      cmd << "\"#{dsym_path}\""
+      cmd << "-y"
+	  cmd << "#{dsym_zip_path}"
+      cmd << "#{dsym_path}"
       Xcode::Shell.execute(cmd)
 
       self
@@ -276,26 +295,35 @@ module Xcode
       
       cmd << "xcodebuild"
       
-      cmd << "-sdk \"#{@sdk}\"" unless @sdk.nil?
+	  unless @sdk.nil?
+		cmd << "-sdk"
+		cmd << @sdk
+	  end
 	  
-      cmd << "-project \"#{@target.project.path}\""
+      cmd << "-project"
+	  cmd << @target.project.path
+	  
 	  unless @scheme.nil?
-		cmd << "-scheme \"#{@scheme.name}\""
+		cmd << "-scheme"
+		cmd << @scheme.name
 	  else
-		cmd << "-target \"#{@target.name}\""
-		cmd << "-configuration \"#{@config.name}\""
+		cmd << "-target"
+		cmd << @target.name
+		cmd << "-configuration"
+		cmd << @config.name
 	  end
       
       if @sdk == "iphonesimulator" then
-          cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
+		cmd << "ARCHS=i386"
+		cmd << "ONLY_ACTIVE_ARCH=NO"
       end
       
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
-      cmd << "CODE_SIGN_IDENTITY=\"#{@identity}\"" unless @identity.nil?
+      cmd << "CODE_SIGN_IDENTITY=#{@identity}" unless @identity.nil?
       cmd << "PROVISIONING_PROFILE=#{profile.uuid}" unless profile.nil?
 	  
-	  cmd << "OBJROOT=\"#{@objroot}\""
-      cmd << "SYMROOT=\"#{@symroot}\""
+	  cmd << "OBJROOT=#{@objroot}"
+      cmd << "SYMROOT=#{@symroot}"
       
       cmd
     end

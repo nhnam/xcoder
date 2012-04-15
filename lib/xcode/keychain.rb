@@ -33,14 +33,14 @@ module Xcode
     # @param [Array<Xcode::Keychain>] the array of keychains for the system to search when signing
     #
     def self.search_path=(keychains)
-      search_list = keychains.map do |kc|
-        "\"#{kc.path}\""
-      end
-      
       cmd = []
       cmd << "security"
       cmd << "list-keychain"
-      cmd << "-s #{search_list.join(' ')}"
+      cmd << "-s"
+	  search_list = keychains.map do |kc|
+		"\"#{kc.path}\""
+	  end
+	  cmd = cmd + search_list
       Xcode::Shell.execute(cmd)
     end
   end
@@ -72,10 +72,14 @@ module Xcode
     def import(cert, password)
       cmd = []
       cmd << "security"
-      cmd << "import '#{cert}'"
-      cmd << "-k \"#{@path}\""
-      cmd << "-P #{password}"
-      cmd << "-T /usr/bin/codesign"
+      cmd << "import"
+	  cmd << "'#{cert}'"
+      cmd << "-k"
+	  cmd << @path
+      cmd << "-P"
+	  cmd << password
+      cmd << "-T" 
+	  cmd << "/usr/bin/codesign"
       Xcode::Shell.execute(cmd)
     end
     
@@ -90,7 +94,7 @@ module Xcode
       cmd << "security"
       cmd << "find-certificate"
       cmd << "-a"
-      cmd << "\"#{@path}\""
+      cmd << @path
       data = Xcode::Shell.execute(cmd, false).join("")
       data.scan /\s+"labl"<blob>="([^"]+)"/ do |m|
         names << m[0]
@@ -105,7 +109,7 @@ module Xcode
       cmd = []
       cmd << "security"
       cmd << "lock-keychain"
-      cmd << "\"#{@path}\""
+      cmd << @path
       Xcode::Shell.execute(cmd)
     end
     
@@ -118,8 +122,9 @@ module Xcode
       cmd = []
       cmd << "security"
       cmd << "unlock-keychain"
-      cmd << "-p #{password}"
-      cmd << "\"#{@path}\""
+      cmd << "-p"
+	  cmd << password
+      cmd << @path
       Xcode::Shell.execute(cmd)
     end
     
@@ -134,8 +139,9 @@ module Xcode
       cmd = []
       cmd << "security"
       cmd << "create-keychain"
-      cmd << "-p #{password}"
-      cmd << "\"#{path}\""
+      cmd << "-p"
+	  cmd << password
+	  cmd << path
       Xcode::Shell.execute(cmd)
       
       kc = Xcode::Keychain.new(path)
@@ -151,7 +157,8 @@ module Xcode
     def delete
       cmd = []
       cmd << "security"
-      cmd << "delete-keychain \"#{@path}\""
+      cmd << "delete-keychain"
+	  cmd << @path
       Xcode::Shell.execute(cmd)
     end
     

@@ -12,10 +12,10 @@ describe Xcode::Builder do
       
       let(:default_build_parameters) do
         [ "xcodebuild", 
-          "-sdk #{configuration.target.project.sdk}", 
-          "-project \"#{configuration.target.project.path}\"", 
-          "-target \"#{configuration.target.name}\"", 
-          "-configuration \"#{configuration.name}\"", 
+          "-sdk", "#{configuration.target.project.sdk}", 
+          "-project", "\"#{configuration.target.project.path}\"", 
+          "-target", "\"#{configuration.target.name}\"", 
+          "-configuration", "\"#{configuration.name}\"", 
           "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"" ]
       end
@@ -89,7 +89,8 @@ describe Xcode::Builder do
       
       it "should allow the override of the sdk" do
         expected = default_test_parameters
-        expected[1] = '-sdk macosx10.7'
+        expected[1] = '-sdk'
+		expected[2] = 'macosx10.7'
         Xcode::Shell.should_receive(:execute).with(expected, false)
         subject.test :sdk => 'macosx10.7'
       end
@@ -100,10 +101,10 @@ describe Xcode::Builder do
 
       let(:default_clean_parameters) do
         [ "xcodebuild", 
-          "-project \"#{configuration.target.project.path}\"", 
-          "-sdk iphoneos",
-          "-target \"#{configuration.target.name}\"", 
-          "-configuration \"#{configuration.name}\"", 
+          "-project", "\"#{configuration.target.project.path}\"", 
+          "-sdk", "iphoneos",
+          "-target", "\"#{configuration.target.name}\"", 
+          "-configuration", "\"#{configuration.name}\"", 
           "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
           "clean" ]
@@ -147,9 +148,9 @@ describe Xcode::Builder do
 
       let(:default_clean_parameters) do
         [ "xcodebuild",
-          "-project \"#{scheme.project.path}\"",
-          "-sdk iphoneos",
-          "-scheme \"#{scheme.name}\"",
+          "-project", "\"#{scheme.project.path}\"",
+          "-sdk", "iphoneos",
+          "-scheme", "\"#{scheme.name}\"",
           "OBJROOT=\"#{File.dirname(scheme.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"",
           "clean" ]
