@@ -459,7 +459,7 @@ module Xcode
 			return @target.name
 		  end
 		  
-		  raise "don't know how to resolve \"#{build_setting}\""
+		  raise "don't know how to resolve \"#{match}\""
         end
 	  end
 	  
