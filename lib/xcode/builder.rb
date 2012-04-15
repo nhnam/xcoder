@@ -16,18 +16,21 @@ module Xcode
     
     def initialize(config)
 	  @config = config
-	  
       @target = config.target
-      @sdk = @target.project.sdk
-      
-      @build_path = File.join File.dirname(@target.project.path), "build"
-      @objroot = @build_path
-      @symroot = @build_path
+	  
+      @sdk = config.get("sdk") || @target.project.sdk
+	  
+      build_path = config.built_products_dir
+	  
+	  @build_path = build_path
+      @objroot = build_path
+      @symroot = build_path
     end
     
     
-    def build(options = {})    
-      cmd = build_command(options)
+    def build
+      cmd = build_command
+	  
       with_keychain do
         Xcode::Shell.execute(cmd)
       end
@@ -35,25 +38,74 @@ module Xcode
       self
     end
     
-    def test(options = {})
-      build(options)
+    def test
+      build
       
       # Find built product
 	  
-	  puts @config
+	  productPath = product_path
       
       # Find otest for the current platform
       
+	  developerDirectory = `xcode-select -print-path`.split("\n")[0]
+	  runUnitTestsFilePath = File.join developerDirectory, "Tools", "RunUnitTests"
+	  
       # Invoke otest for the current platform, capturing the results
       # Ensure the results are written to sdterr as they're generated, so that Jenkins can read them
       # Ensure it's invoked correctly for the Mac (i.e. first with GC off and again with GC on iff required)
-      
-      # Parse the results
+	  
+	  cmdEnv = {}
+	  cmdEnv["ACTION"] = "build"
+	  cmdEnv["ARCHS"] = "i386"
+	  cmdEnv["VALID_ARCHS"] = "i386" # "#{@config.valid_architectures}"
+	  cmdEnv["NATIVE_ARCH_ACTUAL"] = "i386"
+	  cmdEnv["CURRENT_ARCH"] = "i386"
+	  cmdEnv["ONLY_ACTIVE_ARCH"] = "NO"
+	  cmdEnv["BUILT_PRODUCTS_DIR"] = "\"#{@build_path}\""
+	  cmdEnv["TEST_HOST"] = "#{@config.test_host}"
+	  cmdEnv["TEST_BUNDLE_PATH"] = "\"#{productPath}\""
+	  cmdEnv["DEVELOPER_DIR"] = developerDirectory
+	  cmdEnv["DEVELOPER_TOOLS_DIR"] = File.join developerDirectory, "Tools"
+	  cmdEnv["DEVELOPER_LIBRARY_DIR"] = File.join developerDirectory, "Library"
+	  
+	  puts cmdEnv
+	  exit 0
+	  
+	  if @sdk == "iphonesimulator" then
+		platformDirectory = File.join developerDirectory, "Platforms", "iPhoneSimulator.platform"
+		cmdEnv["PLATFORM_DIR"] = platformDirectory
+		platformDeveloperToolsDirectory = File.join platformDirectory, "Developer", "Tools"
+		cmdEnv["PLATFORM_DEVELOPER_TOOLS_DIR"] = platformDeveloperToolsDirectory
+		
+		cmdEnv["SDKROOT"] = "\"#{@config.sdkroot}\""
+	  else
+		puts "unknown platform"
+		exit 1
+	  end
+	  
+	  cmdEnv["PRODUCT_NAME"] = "\"#{File.basename(productPath)}\""
+	  cmdEnv["WRAPPER_EXTENSION"] = "#{File.extname(productPath)}"
+	  cmdEnv["GCC_ENABLE_OBJC_GC"] = "unsupported"
+	  
+	  cmd = []
+	  cmd << cmdEnv
+	  cmd << "bash -x -e \"#{runUnitTestsFilePath}\""
+	  
+      # Run and parse the results
       
       parser = Xcode::Test::OCUnitReportParser.new
       yield parser if block_given?
-      
-      
+	  
+	  begin
+        Xcode::Shell.execute(cmd, true) do |line|
+          parser << line
+        end
+	  rescue => e
+        parser.flush
+        # Let the failure bubble up unless parser has got an error from the output
+        raise e unless parser.failed?
+      end
+      exit 1 if parser.failed?
       
       self
     end
@@ -67,20 +119,28 @@ module Xcode
       testflight.upload(ipa_path, dsym_zip_path)
     end
     
-    def clean(options = {})
+    def clean
+	  
       cmd = []
+	  
       cmd << "xcodebuild"
+	  
+	  cmd << "-sdk #{@sdk}" unless @sdk.nil?
+	  
       cmd << "-project \"#{@target.project.path}\""
-      cmd << "-sdk #{@sdk}" unless @sdk.nil?
-      cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
-      cmd << "-target \"#{@target.name}\"" if @scheme.nil?
-      cmd << "-configuration \"#{@config.name}\"" if @scheme.nil?
+	  unless @scheme.nil?
+		cmd << "-scheme \"#{@scheme.name}\""
+	  else
+		cmd << "-target \"#{@target.name}\""
+		cmd << "-configuration \"#{@config.name}\""
+	  end
       
       if @sdk == "iphonesimulator" then
           cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
       end
-      cmd << "OBJROOT=\"#{@build_path}\""
-      cmd << "SYMROOT=\"#{@build_path}\""
+	  
+      cmd << "OBJROOT=\"#{@objroot}\""
+      cmd << "SYMROOT=\"#{@symroot}\""
       
       cmd << "clean"
       
@@ -93,7 +153,7 @@ module Xcode
       # cmd << "rm -Rf #{build_path}"
       # Xcode::Shell.execute(cmd)
       self
-    end    
+    end
     
     def sign
       cmd = []
@@ -103,6 +163,7 @@ module Xcode
       cmd << "--resource-rules=\"#{product_path}/ResourceRules.plist\""
       cmd << "--entitlements \"#{entitlements_path}\""
       cmd << "\"#{ipa_path}\""
+	  
       Xcode::Shell.execute(cmd)
  
 # CodeSign build/AdHoc-iphoneos/Dial.app
@@ -112,6 +173,7 @@ module Xcode
 #     /usr/bin/codesign --force --sign "iPhone Distribution: Community Broadcasting Association of Australia" "--resource-rules=/Users/ray/Projects/Clients/CBAA/Community Radio/build/AdHoc-iphoneos/Dial.app/ResourceRules.plist" --keychain "\"/Users/ray/Projects/Clients/CBAA/Community\\" "Radio/Provisioning/CBAA.keychain\"" --entitlements "/Users/ray/Projects/Clients/CBAA/Community Radio/build/CommunityRadio.build/AdHoc-iphoneos/CommunityRadio.build/Dial.xcent" "/Users/ray/Projects/Clients/CBAA/Community Radio/build/AdHoc-iphoneos/Dial.app"
 # iPhone Distribution: Community Broadcasting Association of Australia: no identity found
 # Command /usr/bin/codesign failed with exit code 1
+	  
       self
     end
     
@@ -182,7 +244,7 @@ module Xcode
       "#{product_version_basename}.dSYM.zip"
     end
     
-    private 
+    private
     
     def with_keychain(&block)
       if @keychain.nil?
@@ -207,32 +269,37 @@ module Xcode
       p
     end
     
-    def build_command(options = {})
-      options = { :sdk => @sdk }.merge options
+    def build_command
       profile = install_profile
       
       cmd = []
       
       cmd << "xcodebuild"
       
-      cmd << "-sdk \"#{options[:sdk]}\"" unless options[:sdk].nil?
+      cmd << "-sdk \"#{@sdk}\"" unless @sdk.nil?
+	  
       cmd << "-project \"#{@target.project.path}\""
-      cmd << "-scheme \"#{@scheme.name}\"" unless @scheme.nil?
-      cmd << "-target \"#{@target.name}\"" if @scheme.nil?
-      cmd << "-configuration \"#{@config.name}\"" if @scheme.nil?
+	  unless @scheme.nil?
+		cmd << "-scheme \"#{@scheme.name}\""
+	  else
+		cmd << "-target \"#{@target.name}\""
+		cmd << "-configuration \"#{@config.name}\""
+	  end
       
-      if options[:sdk] == "iphonesimulator" then
+      if @sdk == "iphonesimulator" then
           cmd << "ARCHS=i386 ONLY_ACTIVE_ARCH=NO"
       end
       
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
       cmd << "CODE_SIGN_IDENTITY=\"#{@identity}\"" unless @identity.nil?
-      cmd << "OBJROOT=\"#{@objroot}\""
-      cmd << "SYMROOT=\"#{@symroot}\""
       cmd << "PROVISIONING_PROFILE=#{profile.uuid}" unless profile.nil?
+	  
+	  cmd << "OBJROOT=\"#{@objroot}\""
+      cmd << "SYMROOT=\"#{@symroot}\""
       
       cmd
     end
     
   end
+  
 end
