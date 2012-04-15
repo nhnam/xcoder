@@ -1,3 +1,4 @@
+
 require 'xcode/builder'
 require 'xcode/configurations/space_delimited_string_property'
 require 'xcode/configurations/targeted_device_family_property'
@@ -81,7 +82,7 @@ module Xcode
     # @param [Types] type is the class that is used to load and save the value
     #   correctly.
     # 
-    def self.property(property_name,setting_name,type)
+    def self.property(property_name, setting_name, type)
       
       # Define a getter method
 
@@ -95,7 +96,8 @@ module Xcode
           project_config = target.project.global_config(name)
           project_config.send(property_name)
         else
-          substitute type.open(build_settings[setting_name])
+		  build_setting = build_settings[setting_name]
+          substitute type.open(build_setting)
         end
         
       end
@@ -107,11 +109,11 @@ module Xcode
       end
 
       # Define an append method
-      
+	  
       define_method "append_to_#{property_name}" do |value|
         build_settings[setting_name] = unsubstitute type.append(build_settings[setting_name],value)
       end
-      
+	  
       # Define a environment name method (to return the settings name)
       
       define_method "env_#{property_name}" do
@@ -310,6 +312,16 @@ module Xcode
     # Build Setting - "VALID_ARCHS"
     # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_43
     property :valid_architectures, "VALID_ARCHS", SpaceDelimitedString
+	
+	# @attribute
+	# Build Setting - "BUNDLE_LOADER"
+	# @see no reference available :(
+	property :bundle_loader, "BUNDLE_LOADER", StringProperty
+	
+	# @attribute
+	# Build Setting - "TEST_HOST"
+	# @see no reference available :(
+	property :test_host, "TEST_HOST", StringProperty
     
     #
     # Opens the info plist associated with the configuration and allows you to 
@@ -437,8 +449,12 @@ module Xcode
     #   properties 
     #
     def substitute(value)
-      if value=~/\$\(.*\)/
-        value.gsub(/\$\((.*)\)/) do |match|
+	  puts "subtituting #{value}"
+	  
+      if value =~ /\$[({].*[})]/
+        value.gsub /\$[({](.*)[})]/ do |match|
+		  puts "match found #{match}"
+		  
           case match
             when "$(TARGET_NAME)"
               @target.name 
