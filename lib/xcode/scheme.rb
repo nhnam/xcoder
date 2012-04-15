@@ -30,8 +30,15 @@ module Xcode
     
     def performTest
       @test.each do |configuration|
-        builder = Xcode::Builder.new configuration
-        builder.test({ :sdk => "iphonesimulator" })
+		options = {}
+		options["sdk"] = "iphonesimulator"
+		options["built_products_dir"] = File.join File.dirname(configuration.target.project.path), "build"
+		options.each do |key, val|
+		  configuration.set key, val
+		end
+		
+		builder = Xcode::Builder.new(configuration)
+        builder.test
       end
     end
     
@@ -52,6 +59,8 @@ module Xcode
       
       if action_name == 'launch' then
         target_name = action.xpath('BuildableProductRunnable/BuildableReference/@BlueprintName').text
+		return nil if target_name.length == 0
+		
         target = @project.target(target_name)
         configuration = target.config(actionBuildConfiguration)
         return configuration
