@@ -1,5 +1,6 @@
 
 module Xcode
+  
   module Configuration
     
     #
@@ -9,6 +10,7 @@ module Xcode
     # other methods.
     # 
     module StringProperty
+	  
       extend self
       
       def open(value)
@@ -26,4 +28,5 @@ module Xcode
     end
     
   end
+  
 end
