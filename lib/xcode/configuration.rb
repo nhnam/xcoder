@@ -452,15 +452,24 @@ module Xcode
 	  regex = /\$[{(](.*)[)}]/
 	  
       until (value =~ regex) == nil
-		value = value.gsub regex do |match|
+		
+		match_block = lambda do |match|
 		  build_setting = $1
 		  
 		  if build_setting == "TARGET_NAME"
 			return @target.name
 		  end
 		  
+		  build_setting_value = build_settings[build_setting]
+		  unless build_setting_value.nil?
+			return build_setting_value
+		  end
+		  
 		  raise "don't know how to resolve \"#{match}\""
-        end
+		end
+		
+		value = value.gsub regex, &match_block
+		
 	  end
 	  
 	  value
