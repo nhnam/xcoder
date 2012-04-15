@@ -449,8 +449,6 @@ module Xcode
     #   properties 
     #
     def substitute(value)
-	  puts "subtituting #{value}"
-	  
       if value =~ /\$[({].*[})]/
         value.gsub /\$[({](.*)[})]/ do |match|
 		  puts "match found #{match}"
