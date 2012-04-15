@@ -449,12 +449,18 @@ module Xcode
     #   properties 
     #
     def substitute(value)
+	  puts build_settings
+	  
 	  regex = /\$[{(](.*)[)}]/
 	  
       until (value =~ regex) == nil
 		
 		match_block = lambda do |match|
 		  build_setting = $1
+		  
+		  if build_setting == "inherited"
+			raise "inherited build variables should be looked up in the target..project"
+		  end
 		  
 		  if build_setting == "TARGET_NAME"
 			return @target.name
