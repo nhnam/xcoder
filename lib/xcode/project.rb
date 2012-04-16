@@ -334,18 +334,18 @@ module Xcode
       end
       schemes.each do |s|
         puts " + scheme \"#{s.name}\""
-        printTarget = lambda do |configuration|
-          puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
+        printTarget = lambda do |configurationMap|
+		  configurationMap.each do |configurationIdentifier, configuration|
+			puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
+		  end
         end
-        unless s.launch.nil?
+        unless s.run.nil?
           puts "    + Launch action"
-          printTarget.call s.launch
+          printTarget.call s.run
         end
         unless s.test.nil? then
           puts "    + Test action"
-          s.test.each do |current|
-            printTarget.call current
-          end
+		  printTarget.call s.test
         end
       end
     end
