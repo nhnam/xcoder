@@ -16,7 +16,7 @@ module Xcode
         end
       end
 	  
-      raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if $?.exitstatus > 0
+	  raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if $?.exitstatus > 0
 	  
       out
 	  

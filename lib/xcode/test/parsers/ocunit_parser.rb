@@ -12,11 +12,11 @@ module Xcode
           @report = report          
           yield self if block_given?
         end
-    
+		
         def flush
           @report.finish
         end
-    
+		
         def <<(piped_row)
           case piped_row.force_encoding("UTF-8")
     

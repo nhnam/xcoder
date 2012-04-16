@@ -58,13 +58,16 @@ module Xcode
       
       parser = Xcode::Test::Parsers::OCUnitParser.new report
       
-      begin
-        Xcode::Shell.execute(cmd, false) do |line|
-          parser << line
-        end
-      ensure
-        parser.flush
-      end
+	  begin
+		Xcode::Shell.execute(cmd, false) do |line|
+		  parser << line
+		end
+	  rescue
+		puts "Exception:"
+		puts $!, *$@
+	  ensure
+		parser.flush
+	  end
       
       report
     end
