@@ -280,7 +280,7 @@ module Xcode
     end
 	
 	def add_sdk_specific_options(cmd)
-	  if @sdk == "iphonesimulator" then
+	  if @sdk == "iphonesimulator"
 		cmd << "ARCHS=i386"
 		cmd << "ONLY_ACTIVE_ARCH=NO"
       end
