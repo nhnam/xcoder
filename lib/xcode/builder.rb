@@ -46,7 +46,7 @@ module Xcode
     def test
       cmd = build_command
       cmd << "TEST_AFTER_BUILD=YES"
-      cmd << "TEST_HOST=''" if @sdk == 'iphonesimulator'
+      #cmd << "TEST_HOST=''" if @sdk == 'iphonesimulator'
       
       report = Xcode::Test::Report.new
       if block_given?
