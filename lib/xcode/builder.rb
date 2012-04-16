@@ -40,69 +40,8 @@ module Xcode
     
     def test
       cmd = build_command
-	  cmd << "TEST_AFTER_BUILD=YES"
 	  
-	  # Work in progress
-	  # We currently rely on the necessary build phase being present in the Xcode project which we build using xcodebuild
-	  # The following might be of use again later
-	  if false
-		# Find built product
-		
-		productPath = product_path
-		
-		# Find otest for the current platform
-		
-		developerDirectory = `xcode-select -print-path`.split("\n")[0]
-		runUnitTestsFilePath = File.join developerDirectory, "Tools", "RunUnitTests"
-		
-		# Invoke otest for the current platform, capturing the results
-		# Ensure the results are written to sdterr as they're generated, so that Jenkins can read them
-		# Ensure it's invoked correctly for the Mac (i.e. first with GC off and again with GC on iff required)
-		
-		cmdEnv = {}
-		cmdEnv["ACTION"] = "build"
-		cmdEnv["ARCHS"] = "i386"
-		cmdEnv["VALID_ARCHS"] = "i386" # "#{@config.valid_architectures}"
-		cmdEnv["NATIVE_ARCH_ACTUAL"] = "i386"
-		cmdEnv["CURRENT_ARCH"] = "i386"
-		cmdEnv["ONLY_ACTIVE_ARCH"] = "NO"
-		cmdEnv["BUILT_PRODUCTS_DIR"] = "#{@build_path}"
-		cmdEnv["TEST_HOST"] = "#{@config.test_host}"
-		cmdEnv["TEST_BUNDLE_PATH"] = "#{productPath}"
-		cmdEnv["DEVELOPER_DIR"] = "#{developerDirectory}"
-		developerToolsDirectory = File.join developerDirectory, "Tools"
-		cmdEnv["DEVELOPER_TOOLS_DIR"] = "#{developerToolsDirectory}"
-		developerLibraryDirectory = File.join developerDirectory, "Library"
-		cmdEnv["DEVELOPER_LIBRARY_DIR"] = "#{developerLibraryDirectory}"
-		
-		if @sdk == "iphonesimulator" then
-		  platformDirectory = File.join developerDirectory, "Platforms", "iPhoneSimulator.platform"
-		  cmdEnv["PLATFORM_DIR"] = "#{platformDirectory}"
-		  platformDeveloperToolsDirectory = File.join platformDirectory, "Developer", "Tools"
-		  cmdEnv["PLATFORM_DEVELOPER_TOOLS_DIR"] = "#{platformDeveloperToolsDirectory}"
-		  
-		  cmdEnv["SDKROOT"] = @config.sdkroot
-		  else
-		  puts "unknown platform"
-		  exit 1
-		end
-		
-		productName = File.basename(productPath)
-		cmdEnv["PRODUCT_NAME"] = productName
-		
-		productExtension = File.extname(productPath)
-		productExtension.slice!(0)
-		cmdEnv["WRAPPER_EXTENSION"] = productExtension
-		
-		cmdEnv["GCC_ENABLE_OBJC_GC"] = "unsupported"
-		
-		cmd = []
-		cmd << cmdEnv
-		cmd << "bash"
-		cmd << "-x"
-		cmd << "-e"
-		cmd << "#{runUnitTestsFilePath}"
-	  end
+	  cmd << "TEST_AFTER_BUILD=YES"
 	  
       # Run and parse the results
       
@@ -156,10 +95,7 @@ module Xcode
 		cmd << @config.name
 	  end
       
-      if @sdk == "iphonesimulator" then
-          cmd << "ARCHS=i386"
-		  cmd << "ONLY_ACTIVE_ARCH=NO"
-      end
+	  add_sdk_specific_options cmd
 	  
       cmd << "OBJROOT=#{@objroot}"
       cmd << "SYMROOT=#{@symroot}"
@@ -324,10 +260,7 @@ module Xcode
 		cmd << @config.name
 	  end
       
-      if @sdk == "iphonesimulator" then
-		cmd << "ARCHS=i386"
-		cmd << "ONLY_ACTIVE_ARCH=NO"
-      end
+	  add_sdk_specific_options cmd
       
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
       cmd << "CODE_SIGN_IDENTITY=#{@identity}" unless @identity.nil?
@@ -338,6 +271,13 @@ module Xcode
       
       cmd
     end
+	
+	def add_sdk_specific_options(cmd)
+	  if @sdk == "iphonesimulator" then
+		cmd << "ARCHS=i386"
+		cmd << "ONLY_ACTIVE_ARCH=NO"
+      end
+	end
     
   end
   
