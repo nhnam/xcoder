@@ -31,7 +31,11 @@ module Xcode
       def unexpected?
         @unexpected
       end
-      
+
+      def succeed?
+        !self.failed?
+      end
+
       def failed?
         @failed or @unexpected
       end
@@ -76,7 +80,7 @@ module Xcode
       def <<(piped_row)
         puts piped_row if @debug
         
-        case piped_row
+        case piped_row.force_encoding("UTF-8")
     
           when /Test Suite '(\S+)'.*started at\s+(.*)/
             name = $1
@@ -121,7 +125,7 @@ module Xcode
             @failed = true
             
           # when /failed with exit code (\d+)/, 
-          when /BUILD FAILED/ 
+          when /BUILD FAILED/
             flush
             
           when /Segmentation fault/

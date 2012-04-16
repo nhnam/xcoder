@@ -11,12 +11,12 @@ describe Xcode::Builder do
     describe "#build" do
       
       let(:default_build_parameters) do
-        [ "xcodebuild", 
-          "-sdk", "#{configuration.target.project.sdk}", 
-          "-project", "\"#{configuration.target.project.path}\"", 
-          "-target", "\"#{configuration.target.name}\"", 
-          "-configuration", "\"#{configuration.name}\"", 
-          "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"", 
+        [ "xcodebuild",
+          "-sdk", "#{configuration.target.project.sdk}",
+          "-project", "\"#{configuration.target.project.path}\"",
+          "-target", "\"#{configuration.target.name}\"",
+          "-configuration", "\"#{configuration.name}\"",
+          "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
           "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"" ]
       end
 
@@ -38,15 +38,15 @@ describe Xcode::Builder do
       
       let(:testflight_parameters) do 
         ['curl',
-        "--proxy http://proxyhost:8080",
-        "-X POST http://testflightapp.com/api/builds.json",
-        "-F file=@\"#{subject.ipa_path}\"",
-        "-F dsym=@\"#{subject.dsym_zip_path}\"",
-        "-F api_token='api_token'",
-        "-F team_token='team_token'",
-        "-F notes=\"some notes\"",
-        "-F notify=True",
-        "-F distribution_lists='List1,List2'"]
+        "--proxy", "http://proxyhost:8080",
+        "-X", "POST", "http://testflightapp.com/api/builds.json",
+        "-F", "file=@\"#{subject.ipa_path}\"",
+        "-F", "dsym=@\"#{subject.dsym_zip_path}\"",
+        "-F", "api_token='api_token'",
+        "-F", "team_token='team_token'",
+        "-F", "notes=\"some notes\"",
+        "-F", "notify=True",
+        "-F", "distribution_lists='List1,List2'"]
       end
     
       it "should upload ipa and dsym to testflight" do 
@@ -69,30 +69,57 @@ describe Xcode::Builder do
         Xcode.project('TestProject').target('TestProjectTests').config('Debug')
       end
       
-      let(:default_test_parameters) do
-        [ "xcodebuild", 
-          "-sdk iphonesimulator", 
-          "-project \"#{configuration.target.project.path}\"", 
-          "-target \"#{configuration.target.name}\"", 
-          "-configuration \"#{configuration.name}\"", 
-          "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"", 
+      let(:iphonesimulator_test_parameters) do
+        [ "xcodebuild",
+          "-sdk", "iphonesimulator",
+          "-project", "#{configuration.target.project.path}",
+          "-target", "#{configuration.target.name}",
+          "-configuration", "#{configuration.name}",
+          "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
           "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
           "TEST_AFTER_BUILD=YES",
-          # "TEST_HOST=''",
+          "TEST_HOST=''",
           ]
       end
       
-      it "should be able to run the test target" do
-        Xcode::Shell.should_receive(:execute).with(default_test_parameters, false)
-        subject.test
+      let(:macosx_test_parameters) do
+        [ "xcodebuild",
+          "-sdk", "macosx10.7",
+          "-project", "#{configuration.target.project.path}",
+          "-target", "#{configuration.target.name}",
+          "-configuration", "#{configuration.name}",
+          "OBJROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
+          "SYMROOT=\"#{File.dirname(configuration.target.project.path)}/build/\"",
+          "TEST_AFTER_BUILD=YES",
+          ]
+      end
+      
+      
+      it "should be able to run the test target on iphonesimulator" do
+        Xcode::Shell.should_receive(:execute).with(iphonesimulator_test_parameters, false)
+        subject.test :sdk => 'iphonesimulator'
+      end
+
+      it "should be able to run the test target on macosx10.7" do
+        Xcode::Shell.should_receive(:execute).with(macosx_test_parameters, false)
+        subject.test :sdk => 'macosx10.7'
       end
       
       it "should allow the override of the sdk" do
-        expected = default_test_parameters
+		expected = macosx_test_parameters
         expected[1] = '-sdk'
 		expected[2] = 'macosx10.7'
         Xcode::Shell.should_receive(:execute).with(expected, false)
         subject.test :sdk => 'macosx10.7'
+      end
+      
+      it "should not exit when test failed" do
+        Xcode::Shell.stub(:execute)
+        fake_parser = stub(:parser)
+        fake_parser.stub(:failed? => true)
+        fake_parser.stub(:flush)
+        Xcode::Test::Parsers::OCUnitParser.stub(:new => fake_parser)
+        subject.test
       end
       
     end
@@ -111,7 +138,7 @@ describe Xcode::Builder do
       end
 
 
-      it "should clean the project with the default parametesr" do
+      it "should clean the project with the default parameter" do
         Xcode::Shell.should_receive(:execute).with(default_clean_parameters)
         subject.clean
       end
@@ -130,13 +157,13 @@ describe Xcode::Builder do
       
       let(:default_build_parameters) do
         [ "xcodebuild",
-          "-sdk iphoneos",
-          "-project \"#{scheme.project.path}\"",
-          "-scheme \"#{scheme.name}\"",
+          "-sdk", "iphoneos",
+          "-project", "#{scheme.project.path}",
+          "-scheme", "#{scheme.name}",
           "OBJROOT=\"#{File.dirname(scheme.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"" ]
       end
-
+	  
       it "should build the project with the default parameters" do
         Xcode::Shell.should_receive(:execute).with(default_build_parameters)
         subject.build
@@ -155,13 +182,13 @@ describe Xcode::Builder do
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"",
           "clean" ]
       end
-
-
-      it "should clean the project with the default parametesr" do
+	  
+	  
+      it "should clean the project with the default parameter" do
         Xcode::Shell.should_receive(:execute).with(default_clean_parameters)
         subject.clean
       end
-
+	  
     end
 
   end
