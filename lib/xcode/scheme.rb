@@ -136,18 +136,35 @@ module Xcode
 	  instance_variable_set "@#{modelName}".to_sym, blueprintIdentifierToActionConfiguration
 	end
 	
-	def perform_action(action)
-	  send(action).each do |configuration|
-		build_options.each do |key, val|
-		  configuration.set key, val
+	def _perform_action(configurations, actionName)
+	  configurations.each do |currentConfiguration|
+		build_options(currentConfiguration).each do |key, val|
+		  currentConfiguration.set key, val
 		end
 		
-		builder = Xcode::Builder.new configuration
-        builder.send action
+		builder = Xcode::Builder.new currentConfiguration
+        builder.send actionName
 	  end
 	end
 	
-	def build_options
+	def perform_action(actionName)
+	  buildOnlyConfigurationMap = send "buildFor#{actionName.capitalize}"
+	  performActionConfigurationMap = send actionName.to_s
+	  
+	  # Build all the buildable references not referenced as part of the main action, these are strictly sent "build"
+	  
+	  buildOnlyConfigurationMap = buildOnlyConfigurationMap.select do |key, value|
+		not performActionConfigurationMap.include? key
+	  end
+	  _perform_action buildOnlyConfigurationMap.values, "build"
+	  
+	  # Build all the action specfic buildable references, send them "#{action}"
+	  
+	  _perform_action performActionConfigurationMap.values, actionName
+	  
+	end
+	
+	def build_options(configuration)
 	  options = {}
 	  options["sdk"] = "iphonesimulator"
 	  options["built_products_dir"] = File.join File.dirname(configuration.target.project.path), "build"
