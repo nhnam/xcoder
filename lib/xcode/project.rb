@@ -339,11 +339,11 @@ module Xcode
 			puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
 		  end
         end
-        unless s.run.nil?
+        unless s.run.size == 0
           puts "    + Launch action"
           printTarget.call s.run
         end
-        unless s.test.nil? then
+        unless s.test.size == 0
           puts "    + Test action"
 		  printTarget.call s.test
         end
