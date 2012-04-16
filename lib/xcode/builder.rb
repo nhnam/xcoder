@@ -18,7 +18,7 @@ module Xcode
 	  @config = config
       @target = config.target
 	  
-      @sdk = config.get("sdk") || @target.project.sdk
+      @sdk = config.get("sdkroot") || @target.project.sdk
 	  
       build_path = config.built_products_dir
 	  

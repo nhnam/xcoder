@@ -138,7 +138,7 @@ module Xcode
 	
 	def _perform_action(configurations, actionName)
 	  configurations.each do |currentConfiguration|
-		build_options(currentConfiguration).each do |key, val|
+		build_options(currentConfiguration, actionName).each do |key, val|
 		  currentConfiguration.set key, val
 		end
 		
@@ -164,9 +164,13 @@ module Xcode
 	  
 	end
 	
-	def build_options(configuration)
+	def build_options(configuration, actionName)
 	  options = {}
-	  options["sdk"] = "iphonesimulator"
+	  configurationSdkRoot = configuration.sdkroot
+	  if configurationSdkRoot == "iphoneos"
+		configurationSdkRoot = "iphonesimulator"
+	  end
+	  options["sdkroot"] = configurationSdkRoot
 	  options["built_products_dir"] = File.join File.dirname(configuration.target.project.path), "build"
 	  options
 	end
