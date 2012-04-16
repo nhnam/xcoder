@@ -99,14 +99,12 @@ Or, if you know the name:
 There is basic support for schemes, you can enumerate them from a project like so:
 
 	project.schemes.each do |s|
-	  s.builder.build
+	  s.performTest
 	end
 	
 Or, access them by name:
 
-	builder = project.scheme('MyScheme').builder
-	
-Note: The builder behaves the same as the builder for the target/config approach and will force xcodebuild to use the local build/ directory (as per xcode3) rather than a generated temporary directory in DerivedData.  This may or may not be a good thing.
+	scheme = project.scheme('MyScheme')
 
 Note: Shared schemes and user (current logged in user) specific schemes are both loaded. They may share names and other similarities that make them hard to distinguish. Currently the priority loading order is shared schemes and then user specific schemes.
 
