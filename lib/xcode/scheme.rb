@@ -33,9 +33,7 @@ module Xcode
 	  
 	end
 	
-	def performRun
-	  
-	end
+	action :run
 	
 	action :test
 	
@@ -137,17 +135,6 @@ module Xcode
 	  instance_variable_set "@#{modelName}".to_sym, blueprintIdentifierToActionConfiguration
 	end
 	
-	def _perform_action(configurations, actionName)
-	  configurations.each do |currentConfiguration|
-		build_options(currentConfiguration, actionName).each do |key, val|
-		  currentConfiguration.set key, val
-		end
-		
-		builder = Xcode::Builder.new currentConfiguration
-        builder.send actionName
-	  end
-	end
-	
 	def perform_action(actionName)
 	  buildOnlyConfigurationMap = send "buildFor#{actionName.capitalize}"
 	  performActionConfigurationMap = send actionName.to_s
@@ -157,12 +144,26 @@ module Xcode
 	  buildOnlyConfigurationMap = buildOnlyConfigurationMap.select do |key, value|
 		not performActionConfigurationMap.include? key
 	  end
-	  _perform_action buildOnlyConfigurationMap.values, "build"
+	  _perform_action "build", buildOnlyConfigurationMap.values
 	  
 	  # Build all the action specfic buildable references, send them "#{action}"
 	  
-	  _perform_action performActionConfigurationMap.values, actionName
+	  _perform_action actionName, performActionConfigurationMap.values
 	  
+	end
+	
+	def _perform_action(actionName, configurations)
+	  puts actionName
+	  puts configurations
+	  
+	  configurations.each do |currentConfiguration|
+		build_options(currentConfiguration, actionName).each do |key, val|
+		  currentConfiguration.set key, val
+		end
+		
+		builder = Xcode::Builder.new currentConfiguration
+		builder.send actionName
+	  end
 	end
 	
 	def build_options(configuration, actionName)

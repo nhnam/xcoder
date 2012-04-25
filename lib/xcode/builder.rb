@@ -43,6 +43,10 @@ module Xcode
       self
     end
 	
+	def run
+	  build
+	end
+	
     # 
     # Invoke the configuration's test target and parse the resulting output
     #
