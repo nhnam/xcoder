@@ -1,4 +1,4 @@
-# XCoder
+# Xcoder
 
 Taking the pain out of scripting and automating xcode builds.
 
@@ -8,7 +8,7 @@ Full documentation can be found here: http://rayh.github.com/xcoder/
 
 ## Requirements
 
-Xcoder assumes you are using XCode 4.3 on Lion and ruby 1.9.  You may have some degree of success with lesser versions, but they are not intentionally supported.
+Xcoder assumes you are using Xcode 4.3 on Lion and Ruby 1.9.  You may have some degree of success with lesser versions, but they are not intentionally supported.
 
 ## Example Usage
 
