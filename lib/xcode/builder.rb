@@ -32,7 +32,12 @@ module Xcode
       cmd = build_command
 	  
       with_keychain do
-        Xcode::Shell.execute(cmd)
+		begin
+		  Xcode::Shell.execute(cmd)
+		rescue
+		  puts "Exception:"
+		  puts $!, *$@
+		end
       end
       
       self
@@ -50,7 +55,7 @@ module Xcode
       
       report = Xcode::Test::Report.new
       if block_given?
-        yield(report)
+        yield report
       else
         report.add_formatter :stdout
         report.add_formatter :junit, 'test-reports'
