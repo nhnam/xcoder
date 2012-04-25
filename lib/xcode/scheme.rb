@@ -153,9 +153,6 @@ module Xcode
 	end
 	
 	def _perform_action(actionName, configurations)
-	  puts actionName
-	  puts configurations
-	  
 	  configurations.each do |currentConfiguration|
 		build_options(currentConfiguration, actionName).each do |key, val|
 		  currentConfiguration.set key, val
