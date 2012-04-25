@@ -81,9 +81,10 @@ module Xcode
 	  return {} if searchProject.nil?
 	  
 	  target = searchProject.targets.select {|t| t.identifier == identifier}.first
-	  configuration = target.config configurationName
+	  return {} if target.nil?
 	  
-	  { identifier => configuration }
+	  configuration = target.config configurationName
+	  return { identifier => configuration }
 	end
 	
 	def parse_buildable_entries(document, buildFor, configurationName)
