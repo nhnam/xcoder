@@ -1,12 +1,17 @@
+
 module Xcode
+  
   module Test
+	
     module Formatters
-      class StdoutFormatter
+	  
+      class IoFormatter
         
-        def initialize
+        def initialize(output)
+		  @output = output
           @errors = []
         end
-                
+		
         def before(report)
           puts "Begin tests"
         end
@@ -54,9 +59,22 @@ module Xcode
             @errors << test 
           end 
           # puts "[#{test.suite.name} #{test.name}] << END"
-      end
-                
-      end # StdoutFormatter
+		end
+		
+		private
+		
+		def print(*args)
+		  @output.print *args
+		end
+		
+		def puts(*args)
+		  @output.puts *args
+		end
+		
+      end # IoFormatter
+	  
     end # Formatters
+	
   end # Test
+  
 end # Xcode

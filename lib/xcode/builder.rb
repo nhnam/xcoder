@@ -61,14 +61,14 @@ module Xcode
       if block_given?
         yield report
       else
-        report.add_formatter :stdout
+        report.add_formatter :io, $stderr
         report.add_formatter :junit, 'test-reports'
       end
       
       parser = Xcode::Test::Parsers::OCUnitParser.new report
       
 	  begin
-		Xcode::Shell.execute(cmd, false) do |line|
+		Xcode::Shell.execute(cmd, false, false) do |line|
 		  parser << line
 		end
 	  rescue

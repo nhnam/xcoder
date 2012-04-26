@@ -3,7 +3,7 @@ module Xcode
   
   module Shell
     
-    def self.execute(cmd, show_output=true)
+    def self.execute(cmd, show_output=true, raise_on_error=true)
       out = []
 	  
       puts "EXECUTE: #{cmd}"
@@ -16,10 +16,9 @@ module Xcode
         end
       end
 	  
-	  raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if $?.exitstatus > 0
+	  raise "Error (#{$?.exitstatus}) executing '#{cmd}'\n\n  #{out.join("  ")}" if raise_on_error and $?.exitstatus > 0
 	  
       out
-	  
     end
     
   end
