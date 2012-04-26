@@ -6,7 +6,7 @@ module Xcode
     def self.execute(cmd, show_output=true, raise_on_error=true)
       out = []
 	  
-      puts "EXECUTE: #{cmd}"
+      puts "EXECUTE: #{cmd}\n"
 	  
       IO.popen cmd do |f| 
         f.each do |line|

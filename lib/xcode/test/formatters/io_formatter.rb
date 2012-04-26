@@ -9,11 +9,11 @@ module Xcode
         
         def initialize(output)
 		  @output = output
-          @errors = []
         end
 		
         def before(report)
           puts "Begin tests"
+		  @errors = []
         end
         
         def after(report)

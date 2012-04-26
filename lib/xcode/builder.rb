@@ -61,7 +61,7 @@ module Xcode
       if block_given?
         yield report
       else
-        report.add_formatter :io, $stderr
+		# report.add_formatter :io, $stderr
         report.add_formatter :junit, 'test-reports'
       end
       
@@ -69,6 +69,7 @@ module Xcode
       
 	  begin
 		Xcode::Shell.execute(cmd, false, false) do |line|
+		  $stderr.puts line
 		  parser << line
 		end
 	  rescue

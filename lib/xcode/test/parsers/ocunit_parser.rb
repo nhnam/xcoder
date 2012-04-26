@@ -19,7 +19,7 @@ module Xcode
 		
         def <<(piped_row)
           case piped_row.force_encoding("UTF-8")
-    
+			
             when /Test Suite '(\S+)'.*started at\s+(.*)/
               name = $1
               time = Time.parse($2)
@@ -39,19 +39,19 @@ module Xcode
                   suite.finish(time)
                 end
               end
-
+			
             when /Test Case '-\[\S+\s+(\S+)\]' started./
               name = $1
               @report.in_current_suite do |suite|
                 suite.add_test_case name
               end
-
+			
             when /Test Case '-\[\S+\s+(\S+)\]' passed \((.*) seconds\)/
               duration = $2.to_f
               @report.in_current_test do |test|
                 test.passed(duration)
               end
-
+			
             when /(.*): error: -\[(\S+) (\S+)\] : (.*)/
               message = $4
               location = $1
