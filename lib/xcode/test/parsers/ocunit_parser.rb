@@ -27,7 +27,7 @@ module Xcode
 			  end
 			  architecture = $1
 			  garbageCollectionState = $2
-			  @currentReport.identifier = "#{architecture}/GC_#{garbageCollectionState}"
+			  @currentReport.identifier = File.join architecture, "GC_#{garbageCollectionState}"
 			
             when /Test Suite '(\S+)'.*started at\s+(.*)/
               name = $1
