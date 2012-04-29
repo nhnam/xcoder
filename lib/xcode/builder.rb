@@ -15,14 +15,14 @@ module Xcode
     attr_accessor :profile, :identity, :build_path, :keychain, :sdk, :objroot, :symroot
     
     def initialize(config)
-	  @config = config
+      @config = config
       @target = config.target
-	  
+      
       @sdk = config.get("sdkroot") || @target.project.sdk
-	  
+      
       build_path = config.built_products_dir
-	  
-	  @build_path = build_path
+      
+      @build_path = build_path
       @objroot = build_path
       @symroot = build_path
     end
@@ -30,23 +30,23 @@ module Xcode
     
     def build
       cmd = build_command
-	  
+      
       with_keychain do
-		begin
-		  Xcode::Shell.execute(cmd)
-		rescue
-		  puts "Exception:"
-		  puts $!, *$@
-		end
+        begin
+          Xcode::Shell.execute(cmd)
+        rescue
+          puts "Exception:"
+          puts $!, *$@
+        end
       end
       
       self
     end
-	
-	def run
-	  build
-	end
-	
+    
+    def run
+      build
+    end
+    
     # 
     # Invoke the configuration's test target and parse the resulting output
     #
@@ -56,27 +56,27 @@ module Xcode
       cmd = build_command
       cmd << "TEST_AFTER_BUILD=YES"
       #cmd << "TEST_HOST=''" if @sdk == 'iphonesimulator'
-	  cmd << { :err => [ :child, :out ] }
+      cmd << { :err => [ :child, :out ] }
       
       parser = Xcode::Test::Parsers::OCUnitParser.new do |report|
-		report.add_formatter :junit, 'test-reports'
-	  end
+        report.add_formatter :junit, 'test-reports'
+      end
       
-	  begin
-		Xcode::Shell.execute(cmd, false, false) do |line|
-		  $stderr.puts line
-		  parser << line
-		end
-	  rescue
-		puts "Exception:"
-		puts $!, *$@
-	  ensure
-		parser.flush
-	  end
+      begin
+        Xcode::Shell.execute(cmd, false, false) do |line|
+          $stderr.puts line
+          parser << line
+        end
+      rescue
+        puts "Exception:"
+        puts $!, *$@
+      ensure
+        parser.flush
+      end
       
       reports = parser.reports
-	  
-	  reports
+      
+      reports
     end
     
     def testflight(api_token, team_token)
@@ -89,31 +89,31 @@ module Xcode
     end
     
     def clean
-	  
-      cmd = []
-	  
-      cmd << "xcodebuild"
-	  
-	  unless @sdk.nil?
-		cmd << "-sdk"
-		cmd << @sdk
-	  end
-	  
-      cmd << "-project"
-	  cmd << @target.project.path
-	  
-	  unless @scheme.nil?
-		cmd << "-scheme"
-		cmd << @scheme.name
-	  else
-		cmd << "-target"
-		cmd << @target.name
-		cmd << "-configuration"
-		cmd << @config.name
-	  end
       
-	  add_sdk_specific_options cmd
-	  
+      cmd = []
+      
+      cmd << "xcodebuild"
+      
+      unless @sdk.nil?
+        cmd << "-sdk"
+        cmd << @sdk
+      end
+      
+      cmd << "-project"
+      cmd << @target.project.path
+      
+      unless @scheme.nil?
+        cmd << "-scheme"
+        cmd << @scheme.name
+      else
+        cmd << "-target"
+        cmd << @target.name
+        cmd << "-configuration"
+        cmd << @config.name
+      end
+      
+      add_sdk_specific_options cmd
+      
       cmd << "OBJROOT=#{@objroot}"
       cmd << "SYMROOT=#{@symroot}"
       
@@ -135,10 +135,10 @@ module Xcode
       cmd << "codesign"
       cmd << "--force"
       cmd << "--sign"
-	  cmd << @identity
+      cmd << @identity
       cmd << "--resource-rules=#{product_path}/ResourceRules.plist"
       cmd << "--entitlements"
-	  cmd << entitlements_path
+      cmd << entitlements_path
       cmd << ipa_path
       Xcode::Shell.execute(cmd)
  
@@ -149,7 +149,7 @@ module Xcode
 #     /usr/bin/codesign --force --sign "iPhone Distribution: Community Broadcasting Association of Australia" "--resource-rules=/Users/ray/Projects/Clients/CBAA/Community Radio/build/AdHoc-iphoneos/Dial.app/ResourceRules.plist" --keychain "\"/Users/ray/Projects/Clients/CBAA/Community\\" "Radio/Provisioning/CBAA.keychain\"" --entitlements "/Users/ray/Projects/Clients/CBAA/Community Radio/build/CommunityRadio.build/AdHoc-iphoneos/CommunityRadio.build/Dial.xcent" "/Users/ray/Projects/Clients/CBAA/Community Radio/build/AdHoc-iphoneos/Dial.app"
 # iPhone Distribution: Community Broadcasting Association of Australia: no identity found
 # Command /usr/bin/codesign failed with exit code 1
-	  
+      
       self
     end
     
@@ -159,15 +159,15 @@ module Xcode
       #package IPA
       cmd = []      
       cmd << "xcrun"
-	  unless @sdk.nil?
-		cmd << "-sdk"
-		cmd << @sdk
-	  end
+      unless @sdk.nil?
+        cmd << "-sdk"
+        cmd << @sdk
+      end
       cmd << "PackageApplication"
       cmd << "-v"
-	  cmd << product_path
+      cmd << product_path
       cmd << "-o"
-	  cmd << ipa_path
+      cmd << ipa_path
       
       # cmd << "OTHER_CODE_SIGN_FLAGS=\"--keychain #{@keychain.path}\"" unless @keychain.nil?
       # 
@@ -177,7 +177,7 @@ module Xcode
       
       unless @profile.nil?
         cmd << "--embed"
-		cmd << @profile
+        cmd << @profile
       end
       
       with_keychain do
@@ -190,7 +190,7 @@ module Xcode
       cmd << "-r"
       cmd << "-T"
       cmd << "-y"
-	  cmd << "#{dsym_zip_path}"
+      cmd << "#{dsym_zip_path}"
       cmd << "#{dsym_path}"
       Xcode::Shell.execute(cmd)
 
@@ -214,7 +214,7 @@ module Xcode
       version = "SNAPSHOT" if version.nil? or version==""
       "#{configuration_build_path}/#{@config.product_name}-#{@config.name}-#{version}"
     end
-	
+    
     def ipa_path
       "#{product_version_basename}.ipa"
     end
@@ -259,43 +259,43 @@ module Xcode
       
       cmd << "xcodebuild"
       
-	  unless @sdk.nil?
-		cmd << "-sdk"
-		cmd << @sdk
-	  end
-	  
-      cmd << "-project"
-	  cmd << @target.project.path
-	  
-	  unless @scheme.nil?
-		cmd << "-scheme"
-		cmd << @scheme.name
-	  else
-		cmd << "-target"
-		cmd << @target.name
-		cmd << "-configuration"
-		cmd << @config.name
-	  end
+      unless @sdk.nil?
+        cmd << "-sdk"
+        cmd << @sdk
+      end
       
-	  add_sdk_specific_options cmd
+      cmd << "-project"
+      cmd << @target.project.path
+      
+      unless @scheme.nil?
+        cmd << "-scheme"
+        cmd << @scheme.name
+      else
+        cmd << "-target"
+        cmd << @target.name
+        cmd << "-configuration"
+        cmd << @config.name
+      end
+      
+      add_sdk_specific_options cmd
       
       cmd << "OTHER_CODE_SIGN_FLAGS='--keychain #{@keychain.path}'" unless @keychain.nil?
       cmd << "CODE_SIGN_IDENTITY=#{@identity}" unless @identity.nil?
       cmd << "PROVISIONING_PROFILE=#{profile.uuid}" unless profile.nil?
-	  
-	  cmd << "OBJROOT=#{@objroot}"
+      
+      cmd << "OBJROOT=#{@objroot}"
       cmd << "SYMROOT=#{@symroot}"
       
       cmd
     end
-	
-	def add_sdk_specific_options(cmd)
-	  if @sdk == "iphonesimulator"
-		cmd << "ARCHS=i386"
-		cmd << "ONLY_ACTIVE_ARCH=NO"
-      end
-	end
     
-  end
+    def add_sdk_specific_options(cmd)
+      if @sdk == "iphonesimulator"
+        cmd << "ARCHS=i386"
+        cmd << "ONLY_ACTIVE_ARCH=NO"
+      end
+    end
   
+  end
+
 end

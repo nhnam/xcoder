@@ -96,7 +96,7 @@ module Xcode
           project_config = target.project.global_config(name)
           project_config.send(property_name)
         else
-		  build_setting = build_settings[setting_name]
+          build_setting = build_settings[setting_name]
           substitute type.open(build_setting)
         end
         
@@ -109,11 +109,11 @@ module Xcode
       end
 
       # Define an append method
-	  
+      
       define_method "append_to_#{property_name}" do |value|
         build_settings[setting_name] = unsubstitute type.append(build_settings[setting_name],value)
       end
-	  
+      
       # Define a environment name method (to return the settings name)
       
       define_method "env_#{property_name}" do
@@ -312,65 +312,65 @@ module Xcode
     # Build Setting - "VALID_ARCHS"
     # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-DontLinkElementID_43
     property :valid_architectures, "VALID_ARCHS", SpaceDelimitedString
-	
-	# @attribute
-	# Build Setting - "BUNDLE_LOADER"
-	# @see no reference available :(
-	property :bundle_loader, "BUNDLE_LOADER", StringProperty
-	
-	# @attribute
-	# Build Setting - "TEST_HOST"
-	# @see no reference available :(
-	property :test_host, "TEST_HOST", StringProperty
-	
-	# @attribute
-	# Build Setting - "BUILT_PRODUCTS_DIR"
-	# @see https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW42
-	property :built_products_dir, "BUILT_PRODUCTS_DIR", StringProperty
-
-	# @attribute
-	# Build Setting - "CONFIGURATION_BUILD_DIR"
-	# @see https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW40
-	property :configuration_build_dir, "CONFIGURATION_BUILD_DIR", StringProperty
+    
+    # @attribute
+    # Build Setting - "BUNDLE_LOADER"
+    # @see no reference available :(
+    property :bundle_loader, "BUNDLE_LOADER", StringProperty
+    
+    # @attribute
+    # Build Setting - "TEST_HOST"
+    # @see no reference available :(
+    property :test_host, "TEST_HOST", StringProperty
+    
+    # @attribute
+    # Build Setting - "BUILT_PRODUCTS_DIR"
+    # @see https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW42
+    property :built_products_dir, "BUILT_PRODUCTS_DIR", StringProperty
+    
+    # @attribute
+    # Build Setting - "CONFIGURATION_BUILD_DIR"
+    # @see https://developer.apple.com/library/mac/documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW40
+    property :configuration_build_dir, "CONFIGURATION_BUILD_DIR", StringProperty
     
     # @attribute
     # Build Setting - "USER_HEADER_SEARCH_PATHS"
     # @see https://developer.apple.com/library/mac/#documentation/DeveloperTools/Reference/XcodeBuildSettingRef/1-Build_Setting_Reference/build_setting_ref.html#//apple_ref/doc/uid/TP40003931-CH3-SW21
     property :user_header_search_paths, "USER_HEADER_SEARCH_PATHS", SpaceDelimitedString
 
-	#
-	# Opens the info plist associated with the configuration and allows you to 
-	# edit the configuration.
-	# 
-	# @example Editing the configuration
-	# 
-	#     config = Xcode.project('MyProject.xcodeproj').target('Application').config('Debug')
-	#     config.info_plist do |plist|
-	#       puts plist.version  # => 1.0
-	#       plist.version = 1.1
-	#       marketing_version = 12.1
-	#     end
-	# 
-	# @see InfoPlist
-	# 
-	def info_plist
-	  info = Xcode::InfoPlist.new(self, info_plist_location)  
-	  yield info if block_given?
-	  info.save
-	  info
-	end
+    #
+    # Opens the info plist associated with the configuration and allows you to
+    # edit the configuration.
+    #
+    # @example Editing the configuration
+    #
+    #     config = Xcode.project('MyProject.xcodeproj').target('Application').config('Debug')
+    #     config.info_plist do |plist|
+    #       puts plist.version  # => 1.0
+    #       plist.version = 1.1
+    #       marketing_version = 12.1
+    #     end
+    #
+    # @see InfoPlist
+    #
+    def info_plist
+      info = Xcode::InfoPlist.new(self, info_plist_location)
+      yield info if block_given?
+      info.save
+      info
+    end
 
-	#
-	# This property isn't in the build_settings dictionary, though we return a set value to honour that
-	# 
-	# @return [String]
-	# 
-	def configuration_build_dir
-	  directory = build_settings["CONFIGURATION_BUILD_DIR"]
-	  return directory unless directory.nil?
-	  
-	  File.join built_products_dir, "#{name}-#{get('sdk')}"
-	end
+    #
+    # This property isn't in the build_settings dictionary, though we return a set value to honour that
+    #
+    # @return [String]
+    #
+    def configuration_build_dir
+      directory = build_settings["CONFIGURATION_BUILD_DIR"]
+      return directory unless directory.nil?
+      
+      File.join built_products_dir, "#{name}-#{get('sdk')}"
+    end
     
     #
     # Retrieve the configuration value for the given name
@@ -471,31 +471,31 @@ module Xcode
     #   properties 
     #
     def substitute(value)
-	  regex = /\$[{(](.*)[)}]/
-	  
+      regex = /\$[{(](.*)[)}]/
+      
       until (value =~ regex) == nil
-		
-		match_block = lambda do |match|
-		  build_setting_name = $1
-		  
-		  if build_setting_name == "inherited"
-			raise "inherited build variables should be looked up in the target..project"
-		  elsif build_setting_name == "TARGET_NAME"
-			return @target.name
-		  end
-		  
-		  property_name = Configuration.setting_name_to_property(build_setting_name)
-		  build_setting_value = send(property_name)
-		  return build_setting_value unless build_setting_value.nil?
-		  
-		  raise "don't know how to resolve \"#{match}\""
-		end
-		
-		value = value.gsub regex, &match_block
-		
-	  end
-	  
-	  value
+        
+        match_block = lambda do |match|
+          build_setting_name = $1
+          
+          if build_setting_name == "inherited"
+            raise "inherited build variables should be looked up in the target..project"
+          elsif build_setting_name == "TARGET_NAME"
+            return @target.name
+          end
+          
+          property_name = Configuration.setting_name_to_property(build_setting_name)
+          build_setting_value = send(property_name)
+          return build_setting_value unless build_setting_value.nil?
+          
+          raise "don't know how to resolve \"#{match}\""
+        end
+        
+        value = value.gsub regex, &match_block
+        
+      end
+      
+      value
     end
     
     #

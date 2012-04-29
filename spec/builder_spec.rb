@@ -106,9 +106,9 @@ describe Xcode::Builder do
       end
       
       it "should allow the override of the sdk" do
-		expected = macosx_test_parameters
+        expected = macosx_test_parameters
         expected[1] = '-sdk'
-		expected[2] = 'macosx10.7'
+        expected[2] = 'macosx10.7'
         Xcode::Shell.should_receive(:execute).with(expected, false)
         subject.test :sdk => 'macosx10.7'
       end
@@ -163,7 +163,7 @@ describe Xcode::Builder do
           "OBJROOT=\"#{File.dirname(scheme.project.path)}/build/\"", 
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"" ]
       end
-	  
+      
       it "should build the project with the default parameters" do
         Xcode::Shell.should_receive(:execute).with(default_build_parameters)
         subject.build
@@ -182,15 +182,15 @@ describe Xcode::Builder do
           "SYMROOT=\"#{File.dirname(scheme.project.path)}/build/\"",
           "clean" ]
       end
-	  
-	  
+      
+      
       it "should clean the project with the default parameter" do
         Xcode::Shell.should_receive(:execute).with(default_clean_parameters)
         subject.clean
       end
-	  
+    
     end
-
-  end
   
+  end
+
 end

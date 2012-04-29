@@ -2,18 +2,18 @@
 module Xcode
   
   module Test
-	
+    
     module Formatters
-	  
+      
       class IoFormatter
         
         def initialize(output)
-		  @output = output
+          @output = output
         end
-		
+        
         def before(report)
           puts "Begin tests"
-		  @errors = []
+          @errors = []
         end
         
         def after(report)
@@ -27,7 +27,7 @@ module Xcode
                 puts "\n   Test Output:"
                 puts "   > #{error[:data].join("   > ")}\n\n"
               end
-            end       
+            end
             
             # if there is left over data in the test report, show that
             if e.data.count>0
@@ -59,22 +59,22 @@ module Xcode
             @errors << test 
           end 
           # puts "[#{test.suite.name} #{test.name}] << END"
-		end
-		
-		private
-		
-		def print(*args)
-		  @output.print *args
-		end
-		
-		def puts(*args)
-		  @output.puts *args
-		end
-		
+        end
+        
+        private
+        
+        def print(*args)
+          @output.print *args
+        end
+        
+        def puts(*args)
+          @output.puts *args
+        end
+        
       end # IoFormatter
-	  
+      
     end # Formatters
-	
+    
   end # Test
   
 end # Xcode

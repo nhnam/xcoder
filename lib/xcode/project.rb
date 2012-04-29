@@ -53,10 +53,10 @@ module Xcode
     #   `iphoneos`.
     #
     def initialize(path, sdk=nil)
-	  unless File.exists? path
-		raise "project file doesn't exist at path \"#{path}\", check the path is correct"
-	  end
-	  
+      unless File.exists? path
+        raise "project file doesn't exist at path \"#{path}\", check the path is correct"
+      end
+      
       @path = File.expand_path path
       @name = File.basename(@path).gsub(/\.xcodeproj/,'')
       @sdk = sdk || "iphoneos"  # FIXME: should support OSX/simulator too
@@ -339,9 +339,9 @@ module Xcode
       schemes.each do |s|
         puts " + scheme \"#{s.name}\""
         printTarget = lambda do |configurationMap|
-		  configurationMap.each do |configurationIdentifier, configuration|
-			puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
-		  end
+          configurationMap.each do |configurationIdentifier, configuration|
+            puts "       => target:\"#{configuration.target.name}\" (project:\"#{configuration.target.project.name}\"), config:\"#{configuration.name}\""
+          end
         end
         unless s.run.size == 0
           puts "    + Launch action"
@@ -349,7 +349,7 @@ module Xcode
         end
         unless s.test.size == 0
           puts "    + Test action"
-		  printTarget.call s.test
+          printTarget.call s.test
         end
       end
     end

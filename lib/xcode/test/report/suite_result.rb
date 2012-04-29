@@ -2,13 +2,13 @@
 module Xcode
   
   module Test
-	
+    
     class Report
-	  
+      
       class SuiteResult
-		
+        
         attr_accessor :tests, :name, :start_time, :end_time, :report
-		
+        
         def initialize(report, name, start_time)
           @report = report
           @name = name
@@ -17,10 +17,10 @@ module Xcode
           
           @report.notify_observers :before_suite, self
         end
-		
+        
         def finish(time=Time.now)
           raise "Time is nil" if time.nil?
-		  
+          
           # Fail any lingering test
           finish_current_test
       
@@ -36,11 +36,11 @@ module Xcode
           yield(test) if block_given?
           test
         end
-		
+        
         def finished?
           !@end_time.nil?
         end
-		
+        
         def total_errors
           errors = 0
           @tests.each do |t| 

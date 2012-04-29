@@ -10,7 +10,7 @@ module Xcode
     # other methods.
     # 
     module StringProperty
-	  
+      
       extend self
       
       def open(value)

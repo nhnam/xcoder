@@ -37,10 +37,10 @@ module Xcode
       cmd << "security"
       cmd << "list-keychain"
       cmd << "-s"
-	  search_list = keychains.map do |kc|
-		"\"#{kc.path}\""
-	  end
-	  cmd = cmd + search_list
+      search_list = keychains.map do |kc|
+        "\"#{kc.path}\""
+      end
+      cmd = cmd + search_list
       Xcode::Shell.execute(cmd)
     end
   end
@@ -73,13 +73,13 @@ module Xcode
       cmd = []
       cmd << "security"
       cmd << "import"
-	  cmd << "'#{cert}'"
+      cmd << "'#{cert}'"
       cmd << "-k"
-	  cmd << @path
+      cmd << @path
       cmd << "-P"
-	  cmd << password
+      cmd << password
       cmd << "-T" 
-	  cmd << "/usr/bin/codesign"
+      cmd << "/usr/bin/codesign"
       Xcode::Shell.execute(cmd)
     end
     
@@ -123,7 +123,7 @@ module Xcode
       cmd << "security"
       cmd << "unlock-keychain"
       cmd << "-p"
-	  cmd << password
+      cmd << password
       cmd << @path
       Xcode::Shell.execute(cmd)
     end
@@ -140,8 +140,8 @@ module Xcode
       cmd << "security"
       cmd << "create-keychain"
       cmd << "-p"
-	  cmd << password
-	  cmd << path
+      cmd << password
+      cmd << path
       Xcode::Shell.execute(cmd)
       
       kc = Xcode::Keychain.new(path)
@@ -158,7 +158,7 @@ module Xcode
       cmd = []
       cmd << "security"
       cmd << "delete-keychain"
-	  cmd << @path
+      cmd << @path
       Xcode::Shell.execute(cmd)
     end
     

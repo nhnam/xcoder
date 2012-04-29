@@ -54,18 +54,18 @@ module Xcode
     end
     
     def install
-	  cmd = []
-	  cmd << "cp"
-	  cmd << self.path
-	  cmd << self.install_path
-      Xcode::Shell.execute(cmd)   
+      cmd = []
+      cmd << "cp"
+      cmd << self.path
+      cmd << self.install_path
+      Xcode::Shell.execute(cmd)
     end
     
     def uninstall
-	  cmd = []
-	  cmd << "rm"
-	  cmd << "-f"
-	  cmd << self.install_path
+      cmd = []
+      cmd << "rm"
+      cmd << "-f"
+      cmd << self.install_path
       Xcode::Shell.execute(cmd)
     end
 
