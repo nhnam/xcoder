@@ -56,14 +56,15 @@ module Xcode
       cmd = build_command
       cmd << "TEST_AFTER_BUILD=YES"
       #cmd << "TEST_HOST=''" if @sdk == 'iphonesimulator'
+	  cmd << { :err => [ :child, :out ] }
       
       parser = Xcode::Test::Parsers::OCUnitParser.new do |report|
 		report.add_formatter :junit, 'test-reports'
 	  end
       
 	  begin
-		Xcode::Shell.execute(cmd, true, false) do |line|
-		  # $stdout.puts line
+		Xcode::Shell.execute(cmd, false, false) do |line|
+		  $stderr.puts line
 		  parser << line
 		end
 	  rescue
@@ -80,7 +81,7 @@ module Xcode
     
     def testflight(api_token, team_token)
       raise "Can't find #{ipa_path}, do you need to call builder.package?" unless File.exists? ipa_path
-      raise "Can't fins #{dsym_zip_path}, do you need to call builder.package?" unless File.exists? dsym_zip_path
+      raise "Can't find #{dsym_zip_path}, do you need to call builder.package?" unless File.exists? dsym_zip_path
       
       testflight = Xcode::Testflight.new(api_token, team_token)
       yield(testflight) if block_given?
