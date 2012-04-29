@@ -33,7 +33,7 @@ module Xcode
           @suite.report.notify_observers :after_test, self
         end
       
-        def << (line)
+        def <<(line)
           # puts "[#{@suite.name} #{@name}] << #{line}"
           return if @data.count==0 and line.strip.empty?
           @data << line

@@ -57,19 +57,13 @@ module Xcode
       cmd << "TEST_AFTER_BUILD=YES"
       #cmd << "TEST_HOST=''" if @sdk == 'iphonesimulator'
       
-      report = Xcode::Test::Report.new
-      if block_given?
-        yield report
-      else
-		# report.add_formatter :io, $stderr
-        report.add_formatter :junit, 'test-reports'
-      end
-      
-      parser = Xcode::Test::Parsers::OCUnitParser.new report
+      parser = Xcode::Test::Parsers::OCUnitParser.new do |report|
+		report.add_formatter :junit, 'test-reports'
+	  end
       
 	  begin
-		Xcode::Shell.execute(cmd, false, false) do |line|
-		  $stderr.puts line
+		Xcode::Shell.execute(cmd, true, false) do |line|
+		  # $stdout.puts line
 		  parser << line
 		end
 	  rescue
@@ -79,7 +73,9 @@ module Xcode
 		parser.flush
 	  end
       
-      report
+      reports = parser.reports
+	  
+	  reports
     end
     
     def testflight(api_token, team_token)

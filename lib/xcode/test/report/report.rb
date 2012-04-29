@@ -1,22 +1,22 @@
+
 require 'xcode/test/report/suite_result'
 require 'xcode/test/report/test_result'
 
 module Xcode
-  module Test    
-    
-    module Formatters
-    end
-    
-        
+  
+  module Test
+	
     # The report is the abstract representation of a collection of suites of tests.  Formatters can be attached to write output
     # in real time
     class Report
+	  
+	  class InvalidStateException < StandardError
+		
+	  end
+	  
       attr_reader :suites, :observers
-      attr_accessor :start_time, :end_time, :exit_code, :unexpected
-      
-      
-      class InvalidStateException < StandardError; end
-  
+      attr_accessor :identifier, :start_time, :end_time, :exit_code, :unexpected
+	  
       def initialize
         @debug = false
         @exit_code = 0
@@ -26,13 +26,13 @@ module Xcode
         @end_time = nil
         @unexpected = false
         @observers = []
-      
+		
         yield self if block_given?
       end
       
       def add_formatter(format, *args)
         require "xcode/test/formatters/#{format.to_s}_formatter"
-        formatter = Xcode::Test::Formatters.const_get("#{format.to_s.capitalize}Formatter").new(*args)
+		formatter = Xcode::Test::Formatters.const_get("#{format.to_s.capitalize}Formatter").new(*args)
         @observers << formatter
       end
       
@@ -117,5 +117,7 @@ module Xcode
       end
       
     end # Report
+	
   end # Test
+  
 end # Xcode
