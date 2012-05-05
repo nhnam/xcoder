@@ -106,7 +106,7 @@ module Xcode
       end
       
       def abort
-        @report.unexpected=true
+        @unexpected=true
         finish
       end
       
