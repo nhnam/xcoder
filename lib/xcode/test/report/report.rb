@@ -109,7 +109,7 @@ module Xcode
         @report.unexpected=true
         finish
       end
-    
+      
       def notify_observers(event, obj=nil)
         @observers.each do |f|
           f.send event, obj if f.respond_to? event
