@@ -141,26 +141,33 @@ module Xcode
       
       # Build all the buildable references not referenced as part of the main action, these are strictly sent "build"
       
+      allReports = Array.new
+      
       buildOnlyConfigurationMap = buildOnlyConfigurationMap.select do |key, value|
         not performActionConfigurationMap.include? key
       end
-      _perform_action "build", buildOnlyConfigurationMap.values
+      allReports.concat _perform_action("build", buildOnlyConfigurationMap.values)
       
       # Build all the action specfic buildable references, send them "#{action}"
       
-      _perform_action actionName, performActionConfigurationMap.values
+      allReports.concat _perform_action(actionName, performActionConfigurationMap.values)
       
+      allReports
     end
     
     def _perform_action(actionName, configurations)
+      reports = Array.new
+      
       configurations.each do |currentConfiguration|
         build_options(currentConfiguration, actionName).each do |key, val|
           currentConfiguration.set key, val
         end
         
         builder = Xcode::Builder.new currentConfiguration
-        builder.send actionName
+        reports << builder.send(actionName)
       end
+      
+      reports
     end
     
     def build_options(configuration, actionName)

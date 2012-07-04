@@ -31,16 +31,25 @@ module Xcode
     def build
       cmd = build_command
       
+      report = Xcode::Test::Report.new
+      
+      report.start
+      
       with_keychain do
         begin
           Xcode::Shell.execute(cmd)
         rescue
           puts "Exception:"
           puts $!, *$@
+          
+          report.abort
         end
       end
       
-      self
+      report.finish
+      
+      reports = [ report ]
+      reports
     end
     
     def run
