@@ -164,7 +164,7 @@ module Xcode
         end
         
         builder = Xcode::Builder.new currentConfiguration
-        reports << builder.send(actionName)
+        reports.concat builder.send(actionName)
       end
       
       reports

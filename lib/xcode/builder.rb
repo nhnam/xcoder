@@ -84,7 +84,6 @@ module Xcode
       end
       
       reports = parser.reports
-      
       reports
     end
     
