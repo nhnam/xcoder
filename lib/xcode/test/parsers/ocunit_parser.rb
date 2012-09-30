@@ -121,7 +121,7 @@ module Xcode
           @currentReport
         end
         
-        def start_new_report(path_suffix, metadata)
+        def start_new_report(path_suffix=nil, metadata=nil)
           save_current_report
           
           newReport = Xcode::Test::Report.new(path_suffix, metadata)
