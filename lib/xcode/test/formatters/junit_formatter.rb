@@ -1,6 +1,7 @@
 
 require 'builder'
 require 'socket'
+require 'time'
 
 module Xcode
   
@@ -33,36 +34,47 @@ module Xcode
             :name       => suite.name,
             :tests      => suite.tests.count,
             :time       => (suite.end_time - suite.start_time),
-            :timestamp  => suite.end_time
-            ) do |p|
+            :timestamp  => suite.end_time.iso8601
+            ) do |testsuite|
             
-            suite.tests.each do |t|
-              p.testcase(
+            testsuite.properties do |properties|
+              suite.properties.each do |key, val|
+              	properties.property(
+              	  :name => key,
+              	  :value => val
+              	)
+              end
+            end
+            
+            suite.tests.each do |test|
+              testsuite.testcase(
                 :classname  => suite.name,
-                :name       => t.name,
-                :time       => t.time
+                :name       => test.name,
+                :time       => test.time
                 ) do |testcase|
                 
-                t.errors.each do |error|
+                test.errors.each do |error|
                   testcase.failure error[:location], :message => error[:message], :type => 'Failure'
                 end
               end
             end
+            
+            testsuite.tag! "system-out"
+            testsuite.tag! "system-err"
           end
           
-          suiteFilePath = @dir
+          suite_file_path = @dir
           
-          reportIdentifier = suite.report.identifier
-          if reportIdentifier.length > 0
-            suiteFilePath = File.join suiteFilePath, reportIdentifier
-          end
+          path_suffix = suite.report.path_suffix
+          suite_file_path = File.join suite_file_path, path_suffix unless path_suffix.nil?
           
-          FileUtils.mkdir_p suiteFilePath
+          FileUtils.mkdir_p suite_file_path
           
-          suiteFilePath = File.join suiteFilePath, "TEST-#{suite.name}.xml"
-          File.open(suiteFilePath, 'w') do |current_file|
-            current_file.write xml.target!
-          end
+          suite_file_path = File.join suite_file_path, "TEST-#{suite.name}.xml"
+          
+          File.open suite_file_path, 'w' do |file|
+	          file.write xml.target!
+	      end
         
         end # write
       

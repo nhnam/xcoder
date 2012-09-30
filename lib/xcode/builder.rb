@@ -68,7 +68,7 @@ module Xcode
       cmd << { :err => [ :child, :out ] }
       
       parser = Xcode::Test::Parsers::OCUnitParser.new do |report|
-        report.add_formatter :junit, 'test-reports'
+        report.add_formatter(:junit, 'test-reports')
       end
       
       begin

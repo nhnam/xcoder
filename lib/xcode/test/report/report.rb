@@ -14,10 +14,12 @@ module Xcode
       
       end
       
-      attr_reader :suites, :observers
-      attr_accessor :identifier, :start_time, :end_time, :exit_code, :unexpected
+      attr_reader :path_suffix, :metadata, :suites, :observers
+      attr_accessor :start_time, :end_time, :exit_code, :unexpected
       
-      def initialize
+      def initialize(path_suffix=nil, metadata=nil)
+        @path_suffix=path_suffix
+        @metadata=metadata
         @debug = false
         @exit_code = 0
         @suites = []
@@ -26,8 +28,6 @@ module Xcode
         @end_time = nil
         @unexpected = false
         @observers = []
-        
-        yield self if block_given?
       end
       
       def add_formatter(format, *args)
@@ -61,8 +61,8 @@ module Xcode
         notify_observers :before, self
       end
       
-      def add_suite(name, time=Time.now)
-        suite = Xcode::Test::Report::SuiteResult.new(self, name, time)
+      def add_suite(name, metadata=self.metadata, time=Time.now)
+        suite = Xcode::Test::Report::SuiteResult.new(self, name, metadata, time)
         @suites << suite
       end
       

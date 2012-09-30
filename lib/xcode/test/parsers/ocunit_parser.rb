@@ -24,7 +24,11 @@ module Xcode
             when /Run unit tests for architecture '(.*?)' \(GC (.*?)\)/
               architecture = $1
               garbageCollectionState = $2
-              start_new_report File.join(architecture, "GC_#{garbageCollectionState}")
+              
+              path_suffix = File.join(architecture, "GC_#{garbageCollectionState}")
+              metadata = { "Architecture" => architecture, "Garbage Collection" => garbageCollectionState }
+              
+              start_new_report path_suffix, metadata
             
             when /Test Suite '(\S+)'.*started at\s+(.*)/
               name = $1
@@ -32,7 +36,7 @@ module Xcode
               if name=~/\//
                 current_report.start
               else
-                current_report.add_suite name, time
+                current_report.add_suite name, current_report.metadata, time
               end
             
             when /Test Suite '(\S+)'.*finished at\s+(.*)./
@@ -117,15 +121,11 @@ module Xcode
           @currentReport
         end
         
-        def start_new_report(identifier="")
+        def start_new_report(path_suffix, metadata)
           save_current_report
           
-          newReport = Xcode::Test::Report.new do |report|
-            report.identifier = identifier
-          end
-          unless @configureReport.nil?
-            @configureReport.call newReport
-          end
+          newReport = Xcode::Test::Report.new(path_suffix, metadata)
+          @configureReport.call newReport unless @configureReport.nil?
           @currentReport = newReport
         end
         
