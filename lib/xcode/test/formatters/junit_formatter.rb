@@ -32,6 +32,7 @@ module Xcode
             :failures   => suite.total_failed_tests,
             :hostname   => Socket.gethostname,
             :name       => suite.name,
+            :id         => suite.identifier,
             :tests      => suite.tests.count,
             :time       => (suite.end_time - suite.start_time),
             :timestamp  => suite.end_time.iso8601
@@ -39,8 +40,8 @@ module Xcode
             
             testsuite.properties do |properties|
               suite.properties.each do |key, val|
-              	properties.property(
-              	  :name => key,
+                properties.property(
+                  :name => key,
               	  :value => val
               	)
               end

@@ -12,9 +12,10 @@ module Xcode
       
         attr_accessor :reports
       
-        def initialize(&configureReport)
-          @configureReport = configureReport
+        def initialize(&configure_report)
+          @configure_report = configure_report
           @reports = []
+          @suite_identifier = 0
         end
         
         def <<(piped_row)
@@ -23,10 +24,10 @@ module Xcode
           
             when /Run unit tests for architecture '(.*?)' \(GC (.*?)\)/
               architecture = $1
-              garbageCollectionState = $2
+              garbage_collection_state = $2
               
-              path_suffix = File.join(architecture, "GC_#{garbageCollectionState}")
-              metadata = { "Architecture" => architecture, "Garbage Collection" => garbageCollectionState }
+              path_suffix = File.join(architecture, "GC_#{garbage_collection_state}")
+              metadata = { "Architecture" => architecture, "Garbage Collection" => garbage_collection_state }
               
               start_new_report path_suffix, metadata
             
@@ -36,12 +37,12 @@ module Xcode
               if name=~/\//
                 current_report.start
               else
-                current_report.add_suite name, current_report.metadata, time
+                current_report.add_suite name, next_suite_identifier, current_report.metadata, time
               end
             
             when /Test Suite '(\S+)'.*finished at\s+(.*)./
-              time = Time.parse($2)
               name = $1
+              time = Time.parse($2)
               if name=~/\//
                 current_report.finish
               else
@@ -98,9 +99,9 @@ module Xcode
             else
               # ignore if no current report?
               
-              return if @currentReport.nil?
+              return if @current_report.nil?
               
-              @currentReport.in_current_test do |test|
+              @current_report.in_current_test do |test|
                 test << piped_row
               end
             
@@ -115,27 +116,33 @@ module Xcode
         private
         
         def current_report
-          if @currentReport.nil?
+          if @current_report.nil?
             start_new_report
           end
-          @currentReport
+          @current_report
         end
         
         def start_new_report(path_suffix=nil, metadata=nil)
           save_current_report
           
-          newReport = Xcode::Test::Report.new(path_suffix, metadata)
-          @configureReport.call newReport unless @configureReport.nil?
-          @currentReport = newReport
+          new_report = Xcode::Test::Report.new(path_suffix, metadata)
+          @configure_report.call new_report unless @configure_report.nil?
+          @current_report = new_report
         end
         
         def save_current_report
-          report = @currentReport
-          @currentReport = nil
+          report = @current_report
+          @current_report = nil
           return if report.nil?
           
           report.finish
           @reports << report
+        end
+
+        def next_suite_identifier
+          identifier = @suite_identifier
+          @suite_identifier += 1
+          identifier
         end
       
       end # OCUnitParser

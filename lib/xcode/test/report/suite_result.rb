@@ -7,11 +7,12 @@ module Xcode
       
       class SuiteResult
         
-        attr_accessor :tests, :name, :properties, :start_time, :end_time, :report
+        attr_accessor :tests, :name, :identifier, :properties, :start_time, :end_time, :report
         
-        def initialize(report, name, properties, start_time)
+        def initialize(report, name, identifier, properties, start_time)
           @report = report
           @name = name
+          @identifier = identifier
           @properties = properties
           @start_time = start_time
           @tests = []

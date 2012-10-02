@@ -61,8 +61,8 @@ module Xcode
         notify_observers :before, self
       end
       
-      def add_suite(name, metadata=self.metadata, time=Time.now)
-        suite = Xcode::Test::Report::SuiteResult.new(self, name, metadata, time)
+      def add_suite(name, identifier, metadata=self.metadata, time=Time.now)
+        suite = Xcode::Test::Report::SuiteResult.new(self, name, identifier, metadata, time)
         @suites << suite
       end
       
